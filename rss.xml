@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+
+
+
+
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>写东西的地方</title>
+        <link>https://MubyHus.github.io/</link>
+        <description>自己写东西的地方，时不时更新</description>
+        <generator>Hugo 0.61.0-DEV https://gohugo.io/</generator>
+        
+            <language>zh-CN</language>
+        
+        
+        
+        
+            <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+        
+        <lastBuildDate>Sun, 01 Dec 2019 09:32:17 +0800</lastBuildDate>
+        
+            <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
+        
+        
+    </channel>
+</rss>
