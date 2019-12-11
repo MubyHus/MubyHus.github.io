@@ -7,7 +7,7 @@
 
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>写东西的地方</title>
+        <title>练手</title>
         <link>https://MubyHus.github.io/</link>
         <description>自己写东西的地方，时不时更新</description>
         <generator>Hugo 0.61.0-DEV https://gohugo.io/</generator>
@@ -19,10 +19,33 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Sun, 01 Dec 2019 09:32:17 +0800</lastBuildDate>
+        <lastBuildDate>Wed, 11 Dec 2019 23:00:32 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
         
+        
+            <item>
+                <title>这个博客是如何搭起来的</title>
+                <link>https://MubyHus.github.io/posts/blog_build/</link>
+                <guid isPermaLink="true">https://MubyHus.github.io/posts/blog_build/</guid>
+                <pubDate>Wed, 11 Dec 2019 22:38:54 +0800</pubDate>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<p>待补充....</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                    
+                        
+                    
+                
+            </item>
         
     </channel>
 </rss>
