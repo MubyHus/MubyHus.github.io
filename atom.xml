@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">练手</title>
     <subtitle type="html">自己写东西的地方，时不时更新</subtitle>
-    <updated>2020-01-04T08:12:41+08:00</updated>
+    <updated>2020-02-02T11:02:03+08:00</updated>
     <id>https://MubyHus.github.io/</id>
     <link rel="alternate" type="text/html" href="https://MubyHus.github.io/" />
     <link rel="self" type="application/atom+xml" href="https://MubyHus.github.io/atom.xml" />
@@ -13,12 +13,12 @@
             <uri>https://MubyHus.github.io/</uri>
             </author>
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
-    <generator uri="https://gohugo.io/" version="0.61.0-DEV">Hugo</generator>
+    <generator uri="https://gohugo.io/" version="0.64.0-DEV">Hugo</generator>
         <entry>
             <title type="text">博客说明</title>
             <link rel="alternate" type="text/html" href="https://MubyHus.github.io/posts/blog_build/" />
             <id>https://MubyHus.github.io/posts/blog_build/</id>
-            <updated>2019-12-12T22:05:37+08:00</updated>
+            <updated>2020-02-02T10:56:25+08:00</updated>
             <published>2019-12-11T22:38:54+08:00</published>
             <author>
                     <name>mubyhus</name>
@@ -28,34 +28,28 @@
     
     <summary type="html"><![CDATA[这个博客是关于什么的？ 搭建这个博客，主要是为了总结工作中的涉及到的技术内容，尝试通过……]]></summary>
             
-                <content type="html"><![CDATA[
-
-<h4 id="这个博客是关于什么的">这个博客是关于什么的？</h4>
-
+                <content type="html"><![CDATA[<h4 id="这个博客是关于什么的">这个博客是关于什么的？</h4>
 <p>搭建这个博客，主要是为了总结工作中的涉及到的技术内容，尝试通过自己的方法讲述清楚一个技术内容。能够将内容讲解得通俗易懂，才算是真正的理解。</p>
-
 <p>这里涉及到的内容，大部分都会是<code>Linux</code>内核相关，内容都是原创的，并且保证不会沦为<code>API</code>参考一类的水货博客。原则上，在讲述一个主题时，会遵循<strong>设计--&gt;实现</strong>的逻辑，力求解释清楚代码的前因后果。内核中有很多子系统，从架构上看是很有意思的，对于无论是应用程序设计还是实现一些子系统都有很大的帮助。</p>
-
 <p>由于内核中有很多与架构相关的<code>tricky</code>，文章不会过多关注于此，而是在可能因此影响理解的地方作出说明。所有的文章会尽量采用图像形式来描述，避免出现过多代码细节，即使涉及到代码内容，也是采取描述代码功能而不是一句句分析的原则，避免陷入代码海洋中。内核的许多代码细节，实现非常精妙，可以在理解架构的基础上再去抠代码细节，这样收获才更多。</p>
-
 <h4 id="博客搭建">博客搭建</h4>
-
 <ol>
-<li><p>使用的主题是<a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank">Meme</a>。配置文件主要修改：</p>
-
+<li>
+<p>使用的主题是<a href="https://github.com/reuixiy/hugo-theme-meme">Meme</a>。配置文件主要修改：</p>
 <ul>
-<li>增加了相关图标(SVG)</li>
+<li>增加了相关图标(SVG)，参考<a href="https://io-oi.me/tech/documentation-of-hugo-theme-meme/#%E5%9B%BE%E6%A0%87">MemE文档</a></li>
 <li>修改默认字号</li>
-<li>关闭显示阅读时长</li>
+<li>关闭显示阅读时长，<strong>阅读时长对于阅读是无意义的</strong></li>
 <li>关闭显示站点版权信息</li>
 <li>修改默认的文章内容宽度</li>
-</ul></li>
-
-<li><p><code>hugo</code>使用自编译的0.59.1版本，<strong>需要使用带extention的版本</strong>：</p>
-
+</ul>
+</li>
+<li>
+<p><code>hugo</code>使用自编译的最新版本，<strong>需要使用带extention的版本</strong>：</p>
 <ul>
 <li>编译：<code>go install --tags extended</code></li>
-</ul></li>
+</ul>
+</li>
 </ol>
 ]]></content>
             
