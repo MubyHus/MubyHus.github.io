@@ -19,10 +19,43 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Tue, 04 Feb 2020 09:47:53 +0800</lastBuildDate>
+        <lastBuildDate>Thu, 20 Feb 2020 09:41:26 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
         
+        
+            <item>
+                <title>Linux代码惯例及小块知识</title>
+                <link>https://MubyHus.github.io/posts/linux_convention/</link>
+                <guid isPermaLink="true">https://MubyHus.github.io/posts/linux_convention/</guid>
+                <pubDate>Tue, 04 Feb 2020 13:53:37 +0800</pubDate>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<h4 id="1">1.</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#</span><span class="cp">define THIS_MODULE(&amp;__this_module)</span><span class="cp">
+</span></code></pre></td></tr></table>
+</div>
+</div><p><code>__this_module</code>是由内核模块的工具链为当前模块产生的一个<code>struct module</code>对象。<code>struct file_operations</code>这个结构体中会有指向<code>struct module</code>对象的指针，主要是<strong>为了保证<code>file_operations</code>中的函数在被调用时，模块不会被从系统中卸载。如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code>是空指针</strong>，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
+<h4 id="2">2.</h4>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                    
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>Linux设备驱动框架-从需求实现角度</title>

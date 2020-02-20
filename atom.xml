@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">练手</title>
     <subtitle type="html">自己写东西的地方，时不时更新</subtitle>
-    <updated>2020-02-04T09:47:53+08:00</updated>
+    <updated>2020-02-20T09:41:26+08:00</updated>
     <id>https://MubyHus.github.io/</id>
     <link rel="alternate" type="text/html" href="https://MubyHus.github.io/" />
     <link rel="self" type="application/atom+xml" href="https://MubyHus.github.io/atom.xml" />
@@ -14,6 +14,47 @@
             </author>
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.64.0-DEV">Hugo</generator>
+        <entry>
+            <title type="text">Linux代码惯例及小块知识</title>
+            <link rel="alternate" type="text/html" href="https://MubyHus.github.io/posts/linux_convention/" />
+            <id>https://MubyHus.github.io/posts/linux_convention/</id>
+            <updated>2020-02-04T14:02:47+08:00</updated>
+            <published>2020-02-04T13:53:37+08:00</published>
+            <author>
+                    <name>mubyhus</name>
+                    <uri>https://MubyHus.github.io/</uri>
+                    </author>
+            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
+    
+    <summary type="html"><![CDATA[<ol>
+<li>1 #define THIS_MODULE(&__this_module) __this_module是由内核模块的工具链为当前模块产生的一个struc……</li>
+</ol>]]></summary>
+            
+                <content type="html"><![CDATA[<h4 id="1">1.</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#</span><span class="cp">define THIS_MODULE(&amp;__this_module)</span><span class="cp">
+</span></code></pre></td></tr></table>
+</div>
+</div><p><code>__this_module</code>是由内核模块的工具链为当前模块产生的一个<code>struct module</code>对象。<code>struct file_operations</code>这个结构体中会有指向<code>struct module</code>对象的指针，主要是<strong>为了保证<code>file_operations</code>中的函数在被调用时，模块不会被从系统中卸载。如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code>是空指针</strong>，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
+<h4 id="2">2.</h4>
+]]></content>
+            
+            
+            
+            
+            
+                
+                    
+                
+                    
+                
+            
+        </entry>
+    
         <entry>
             <title type="text">Linux设备驱动框架-从需求实现角度</title>
             <link rel="alternate" type="text/html" href="https://MubyHus.github.io/posts/device_driver_framework/" />
