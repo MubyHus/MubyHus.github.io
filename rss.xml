@@ -7,7 +7,7 @@
 
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>练手</title>
+        <title>自言自语</title>
         <link>https://MubyHus.github.io/</link>
         <description>自己写东西的地方，时不时更新</description>
         <generator>Hugo 0.64.0-DEV https://gohugo.io/</generator>
@@ -19,7 +19,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Thu, 20 Feb 2020 09:41:26 +0800</lastBuildDate>
+        <lastBuildDate>Sat, 25 Apr 2020 07:12:31 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
         
@@ -43,6 +43,8 @@
 </div>
 </div><p><code>__this_module</code>是由内核模块的工具链为当前模块产生的一个<code>struct module</code>对象。<code>struct file_operations</code>这个结构体中会有指向<code>struct module</code>对象的指针，主要是<strong>为了保证<code>file_operations</code>中的函数在被调用时，模块不会被从系统中卸载。如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code>是空指针</strong>，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
 <h4 id="2">2.</h4>
+<p>Linux驱动中，用的比较多的是<code>module_init</code>，这里涉及内核提供的<code>initcall</code>相关机制。</p>
+<p>关于该机制，可以参考Linux Insides的<a href="https://xinqiu.gitbooks.io/linux-insides-cn/content/Concepts/linux-cpu-3.html">这个部分</a>。这里结合实际可能遇到的代码，再补充几个需要注意的地方。</p>
 ]]></description>
                 
                 
@@ -61,7 +63,7 @@
                 <title>Linux设备驱动框架-从需求实现角度</title>
                 <link>https://MubyHus.github.io/posts/device_driver_framework/</link>
                 <guid isPermaLink="true">https://MubyHus.github.io/posts/device_driver_framework/</guid>
-                <pubDate>Sat, 04 Jan 2020 10:16:44 +0800</pubDate>
+                <pubDate>Thu, 02 Jan 2020 10:16:44 +0800</pubDate>
                 
                 <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
                 
@@ -127,6 +129,8 @@
 <p>搭建这个博客，主要是为了总结工作中的涉及到的技术内容，尝试通过自己的方法讲述清楚一个技术内容。能够将内容讲解得通俗易懂，才算是真正的理解。</p>
 <p>这里涉及到的内容，大部分都会是<code>Linux</code>内核相关，内容都是原创的，并且保证不会沦为<code>API</code>参考一类的水货博客。原则上，在讲述一个主题时，会遵循<strong>设计--&gt;实现</strong>的逻辑，力求解释清楚代码的前因后果。内核中有很多子系统，从架构上看是很有意思的，对于无论是应用程序设计还是实现一些子系统都有很大的帮助。</p>
 <p>由于内核中有很多与架构相关的<code>tricky</code>，文章不会过多关注于此，而是在可能因此影响理解的地方作出说明。所有的文章会尽量采用图像形式来描述，避免出现过多代码细节，即使涉及到代码内容，也是采取描述代码功能而不是一句句分析的原则，避免陷入代码海洋中。内核的许多代码细节，实现非常精妙，可以在理解架构的基础上再去抠代码细节，这样收获才更多。</p>
+<h4 id="有问题反馈">有问题反馈？</h4>
+<p>请在<a href="https://github.com/MubyHus/MubyHus.github.io">这里</a>提issue，基本每天都会检查，收到问题后会尽回复。</p>
 <h4 id="博客搭建">博客搭建</h4>
 <ol>
 <li>
