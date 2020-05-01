@@ -19,7 +19,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 01 May 2020 12:35:38 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 01 May 2020 12:38:13 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
         
@@ -138,6 +138,303 @@
 如何理解char_dev.c中__register_chr_region的二级指针的使用？</p>
 <p>####5
 什么是左值，什么是右值？</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://MubyHus.github.io/categories/linux/">Linux</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                
+            </item>
+        
+            <item>
+                <title>字符设备驱动框架</title>
+                <link>https://MubyHus.github.io/posts/char_device/</link>
+                <guid isPermaLink="true">https://MubyHus.github.io/posts/char_device/</guid>
+                <pubDate>Thu, 02 Jan 2020 22:33:42 +0800</pubDate>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<p><code>Linux</code>中，字符设备驱动是相对简单但是却使用十分广泛的一类驱动。在这篇文章里，将会尝试理清楚如下的一些基本问题：</p>
+<ol>
+<li>字符设备驱动框架结构及逻辑，包括系统是如何<strong>管理各种设备号保证在系统范围内不冲突</strong>；</li>
+<li>应用程序是如何通过标准文件读写接口，最终与对应的字符设备驱动建立联系的；</li>
+</ol>
+<p>实际上，设备驱动框架中的大部分子系统，最后向用户层提供的文件访问接口都是通过字符设备完成的。在某种意义上，字符设备可以看成是整个驱动框架比较基础的接口表现，在此基础上才有各类子系统。</p>
+<h4 id="框架建立流程图解">框架建立流程图解</h4>
+<p><img src="/images/char_device/chardev_flow.svg" alt="init_flow"></p>
+<p>上图是从内核初始化到字符设备驱动框架建立的函数调用过程，在最后的 <code>chardev_init</code> 函数，就是需要重点说明的。。经过<code>chardev_init</code>这个函数，实际上内核建立了一个<code>struct kobj_map</code>的变量<code>cdev_map</code>：
+<img src="/images/char_device/cdev_map.svg" alt="cdev_map">
+这个变量的功能这里暂时先不说明，后文会详述，这个时候，只要在脑海中建立这样的结构就可以了。</p>
+<p>接下来，我们跳到<code>kernel/fs/char_dev.c</code>中看看其中定义的另外一个变量<code>chrdevs</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="k">struct</span> <span class="n">char_device_struct</span> <span class="p">{</span>
+	<span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">major</span><span class="p">;</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">baseminor</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="n">minorct</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="mi">64</span><span class="p">]</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">cdev</span><span class="p">;</span>		<span class="cm">/* will die */</span>
+<span class="p">}</span> <span class="o">*</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">CHRDEV_MAJOR_HASH_SIZE</span><span class="p">]</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这个变量是一个存放<code>struct char_device_struct</code>指针的数组，数组大小为255。数组每一项都保存指向<code>struct char_device_struct</code>这个结构体变量的指针，这个结构体保存了它所代表的一段设备号的信息，有主设备号、起始次设备号、次设备号总数等；</p>
+<p><code>chrdevs</code>这个数组，建立了设备号管理的初始化数据结构。首先，设备号作为重要的资源，最好是由框架进行管理，通过统一接口给设备驱动使用。实际编码过程中，如果设备号是由驱动开发者自行分配，不同的驱动作者可能互相不知道其他驱动使用了哪些设备号，可能会导致各种冲突出现；另外，如果通过静态定义的方式，那么每次一个新的驱动都得确认自己能用的设备号，又不够方便。</p>
+<p>由框架来管理设备号，可以保证设备号在系统是唯一的，只要驱动使用标准的框架接口，设备号作为一种资源，无论分配还是释放，都可以由框架保证正确性。</p>
+<p><code>chrdevs</code>这个数组，这个数组的每一项都是存放一个 <code>struct char_device_struct</code> 变量的指针，图示如下：
+<img src="/images/char_device/chrdevs.svg" alt="chrdevs">
+这个数组的动态改变，涉及到如下三个函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//向框架注册从dev开始，一共count个次设备号
+</span><span class="c1"></span><span class="kt">int</span> <span class="n">register_chrdev_region</span><span class="p">(</span><span class="n">dev_t</span> <span class="n">from</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">count</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">)</span>
+<span class="kt">int</span> <span class="n">alloc_chrdev_region</span><span class="p">(</span><span class="n">dev_t</span> <span class="o">*</span><span class="n">dev</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">baseminor</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">count</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c1">//释放注册的设备号
+</span><span class="c1"></span><span class="kt">void</span> <span class="n">unregister_chrdev_region</span><span class="p">(</span><span class="n">dev_t</span> <span class="n">from</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">count</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>当调用分配设备号的接口函数时( <code>register_chrdev_region</code> 或 <code>alloc_chrdev_region</code> )，最后都会调用到 <code>__register_chrdev_region</code>，最终得到一个可用的 <code>major</code> 号，同时返回一个动态分配的 <code>struct char_device_struct</code>。这个函数比较长，分两种情况讨论：</p>
+<ul>
+<li>如果传入的<code>major = 0</code>，表明调用者需要动态分配设备号；此时系统会找到可用<code>major</code>并分配；</li>
+<li>如果传入的<code>major != 0</code>，那么表明设备号是指定的；系统先要确认设备号是否与已经分配的有冲突，有冲突返回失败。</li>
+</ul>
+<p>整体的分配设备号的过程，比较琐碎。如下是涉及到设备号分配的一些重点信息：</p>
+<blockquote>
+<ol>
+<li>主设备号最大可以到511，其中[254, 234)及[511, 384)这个范围的major是可用于动态分配的；如果这些设备号都已经分配过，则系统查找动态设备号会失败；</li>
+<li>静态指定指定设备的主设备号(major)是可以相同的，但是minor的范围不能重叠，否则设备号分配失败；</li>
+</ol>
+</blockquote>
+<p>调用字符设备框架接口的驱动中，如下是常用函数及其调用关系(点击查看大图)：
+<img src="/images/char_device/functions.svg" alt="misc_chrdev">
+绿色框表示不同需求下调用的函数，与绿色框<strong>直接</strong>箭头相连的，就是设备驱动中会直接调用的函数，其他则是字符设备框架实现功能的内部函数，一般不会直接调用到。</p>
+<p>现在根据上面的函数调用图，首先，看看静态指定设备号，对<code>chrdevs</code>和<code>cdev_map</code>会产生什么影响。我们以 <code>misc</code> 这个常用的设备类为例，<code>misc</code> 框架注册设备号的地方在 <code>kernel/drivers/char/misc.c</code> 的 <code>misc_init</code> 中：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">misc_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">//....
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">register_chrdev</span><span class="p">(</span><span class="n">MISC_MAJOR</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">misc</span><span class="s">&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">misc_fops</span><span class="p">)</span><span class="p">)</span>
+		<span class="k">goto</span> <span class="n">fail_printk</span><span class="p">;</span>
+    <span class="c1">//.....
+</span><span class="c1"></span><span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>可以看到<code>misc</code>框架申请的字符设备号用的<code>register_chrdev</code>，也就是说是前文函数图中的第一种情况。<code>MISC_MAJOR=10</code>，也就是说需要主设备为10，<code>misc</code>驱动将支持一共256个子设备管理。<code>chardevs</code>和<code>cdev_map</code>会形成如下情况：
+<img src="/images/char_device/chrdev_misc.svg" alt="misc_chrdev">
+可以看到(绿框部分)，经过<code>register_chrdev</code>函数内核分配了一个<code>struct char_device_struct</code>，用于记录分配的设备号的范围，由<code>chrdevs</code>管理；同时产生一个<code>struct probe</code>数组(如果需要占用的minor出现了跨major的情况)，由<code>cdev_map</code>管理；产生的<code>struct probe</code>中通过<code>data</code>域指向对应的<code>struct cdev</code>，比如<code>misc</code>这里，产生的<code>struct cdev</code>保存了<code>misc_fops</code>这个函数集。</p>
+<p>实际上，当上层调用<code>open/read/write</code>这些函数操作设备节点时，最终经过层层调用，会调用到这个<code>struct cdev</code>中这个函数集中对应的函数，从而实现了用户与设备驱动的交互。</p>
+<p>如果我们在<code>misc</code>设备号分配成功的情况下，如果再申请一次<code>major</code>为10，次设备号申请10个，从256~265。示意代码如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">register_chrdev_region</span><span class="p">(</span><span class="n">MKDEV</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">same_with_misc</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
+<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">cd</span> <span class="o">=</span> <span class="n">cdev_alloc</span><span class="p">(</span><span class="p">)</span><span class="p">;</span>
+<span class="n">cd</span><span class="o">-</span><span class="o">&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="n">test_ops</span><span class="p">;</span>
+<span class="n">cd</span><span class="o">-</span><span class="o">&gt;</span><span class="n">owner</span> <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">;</span>
+<span class="n">cdev_add</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">MKDEV</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这样形成的结构如下：
+<img src="/images/char_device/chrdev_major10_again.svg" alt="chrdev_another"></p>
+<p>从这前后的两个图可以对比看出，在<code>chrdevs</code>中，链表上的<code>struct char_device_struct</code>是按照major和baseminor从小到大排列；在<code>cdev_map</code>中则是按照<code>struct probe</code>的<strong>范围</strong>从小到大排序；</p>
+<p>如果是动态分配设备号，那么调用<code>register_chrdev</code>或者<code>alloc_chrdev_region</code>时，传入的<code>major</code>为0即可。正如上面所说的，动态分配的<code>major</code>，只会在<code>[254, 234)及[511, 384)</code>这个范围。</p>
+<p>假设<code>dev_t</code>内核定义是32bit， <code>major</code>占用12bit，<code>minor</code>占用20bit的话。可以知道同一个<code>major</code>下，可以支持$2^{20}$个子设备。当然，这并不是说一个驱动只能支持这么多个子设备。实际上，我们从<code>xxx_chrdev_region</code>的接口可以知道，<strong>一个驱动可以支持的子设备数据，最多可以是<code>unsigned int</code>能表示的最大的数量。一个<code>major</code>支持不了，那么就会跨<code>major</code>分配，即可能多个<code>major</code>表示的对应同一个驱动。</strong></p>
+<h4 id="文件接口与驱动的绑定">文件接口与驱动的绑定</h4>
+<p>接下来，需要回答文章开头的第二个问题，设备结点的读写是如何对应到实际的设备驱动中。这里我们以一个简单的字符设备驱动为例，为了不使过多代码干扰，这里只列出了重要的部分：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//......
+</span><span class="c1"></span><span class="kt">int</span> <span class="n">major</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">first_drv_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">ssize_t</span> <span class="nf">first_drv_write</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">loff_t</span> <span class="o">*</span> <span class="n">ppos</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">first_drv_fops</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">.</span><span class="n">owner</span>  <span class="o">=</span>   <span class="n">THIS_MODULE</span><span class="p">,</span>
+    <span class="p">.</span><span class="n">open</span>   <span class="o">=</span>   <span class="n">first_drv_open</span><span class="p">,</span>
+    <span class="p">.</span><span class="n">write</span>    <span class="o">=</span>    <span class="n">first_drv_write</span><span class="p">,</span>
+<span class="p">}</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">fisrt_drv_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">major</span> <span class="o">=</span> <span class="n">register_chrdev</span><span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">first_drv</span><span class="s">&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">first_drv_fops</span><span class="p">)</span><span class="p">;</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">fisrt_drv_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">unregister_chrdev</span><span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">first_drv</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">module_init</span><span class="p">(</span><span class="n">fisrt_drv_init</span><span class="p">)</span><span class="p">;</span>
+<span class="n">module_exit</span><span class="p">(</span><span class="n">fisrt_drv_init</span><span class="p">)</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>我们基于前文的情况，把这次分配的结构用图示表示出来：
+<img src="/images/char_device/dynamic_alloc_after_misc.svg" alt="dynamic_alloc">
+深绿色的这一部分就是动态分配的部分。</p>
+<p>当用户打开字符设备节点时，最后会调用到<code>default_chr_fops</code>这个函数，定义在在<code>kernel/fs/char_dev.c</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">def_chr_fops</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="p">.</span><span class="n">open</span> <span class="o">=</span> <span class="n">chrdev_open</span><span class="p">,</span>
+	<span class="p">.</span><span class="n">llseek</span> <span class="o">=</span> <span class="n">noop_llseek</span><span class="p">,</span>
+<span class="p">}</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>而后在<code>default_open</code>这个函数中，会查找上面<code>cdev_map</code>这个变量，然后找到与设备好关联的<code>struct probe</code>，然后访问绑定的<code>struct cdev</code>中<code>file_operations</code>，这样就调用到了对应的设备驱动实现函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">int</span> <span class="nf">chrdev_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="o">*</span><span class="n">fops</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+	<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">new</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="c1">//....
+</span><span class="c1"></span>	<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">kobject</span> <span class="o">*</span><span class="n">kobj</span><span class="p">;</span>
+		<span class="kt">int</span> <span class="n">idx</span><span class="p">;</span>
+        <span class="c1">//查找到对应的kojb
+</span><span class="c1"></span>		<span class="n">kobj</span> <span class="o">=</span> <span class="n">kobj_lookup</span><span class="p">(</span><span class="n">cdev_map</span><span class="p">,</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_rdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">)</span><span class="p">;</span>
+        <span class="c1">//获取kobj所在的cdev
+</span><span class="c1"></span>		<span class="n">new</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">kobj</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cdev</span><span class="p">,</span> <span class="n">kobj</span><span class="p">)</span><span class="p">;</span>
+	<span class="p">}</span>
+    <span class="c1">//....
+</span><span class="c1"></span>    <span class="c1">//获取cdev的fops
+</span><span class="c1"></span>	<span class="n">fops</span> <span class="o">=</span> <span class="n">fops_get</span><span class="p">(</span><span class="n">p</span><span class="o">-</span><span class="o">&gt;</span><span class="n">ops</span><span class="p">)</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fops</span><span class="p">)</span>
+		<span class="k">goto</span> <span class="n">out_cdev_put</span><span class="p">;</span>
+    <span class="c1">//替换filp中的fops为cdev的
+</span><span class="c1"></span>	<span class="n">replace_fops</span><span class="p">(</span><span class="n">filp</span><span class="p">,</span> <span class="n">fops</span><span class="p">)</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>从这个逻辑里面可以看到，在<code>open</code>的时候，实际是从<code>cdev_map</code>获取到了<code>kobject</code>，然后通过<code>container_of</code>这个宏获取到<code>cdev</code>。并且最后会把<code>struct file</code>中的函数集替换成<code>cdev</code>对应的。</p>
+<p>这里有个问题，就是为什么，从<code>cdev_map</code>中是先获取<code>kobject</code>，而不是直接获取到<code>cdev</code>呢？从目前阅读的代码看，原因是<code>struct kobj_map cdev_map</code>是一个通用的<code>hash</code>结构，<code>kojb_map</code>与<code>kojb_lookup</code>函数为了通用，实际上并不管<code>data</code>的数据结构是什么，这也是为什么<code>struct probe</code>里面最后是通过一个<code>void *data</code>指向<code>cdev</code>。</p>
+<p>所以<code>struct kobj_map</code>这样一个结构体，也是可以用于对其他的内嵌<code>kobject</code>的结构变量做<code>hash</code>操作的。</p>
+<p>这样就实现了上层应用对节点的操作最终调用到了实际设备驱动中的整个过程。在这里只是大致说明了流程，有些问题没有回答，比如<code>chrdev_open</code>又是怎么被调用到。限于篇幅，从用户层通过系统调用直到底层驱动函数的绑定过程，可以看<a href="/posts/syscall_open_and_char_dev/">另外一篇文章</a>的详细描述。</p>
+<h4 id="总结">总结</h4>
+<p>从上面可以看到，内核字符设备框架，为了管理设备号，也为了完成设备号和具体驱动的绑定，使用了两个变量来保存相关的信息。<code>chrdevs</code>这数组用于记录哪些设备号已经被占用/被分配，<code>cdev_map</code>则是用于系统更好的查找设备号对应的<code>struct cdev</code>，从而找到具体的操作函数集。这样就完成了设备号管理和驱动绑定的功能。</p>
 ]]></description>
                 
                 
