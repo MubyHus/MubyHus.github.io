@@ -19,7 +19,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Sat, 25 Apr 2020 07:12:31 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 01 May 2020 12:35:38 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
         
@@ -41,10 +41,103 @@
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#</span><span class="cp">define THIS_MODULE(&amp;__this_module)</span><span class="cp">
 </span></code></pre></td></tr></table>
 </div>
-</div><p><code>__this_module</code>是由内核模块的工具链为当前模块产生的一个<code>struct module</code>对象。<code>struct file_operations</code>这个结构体中会有指向<code>struct module</code>对象的指针，主要是<strong>为了保证<code>file_operations</code>中的函数在被调用时，模块不会被从系统中卸载。如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code>是空指针</strong>，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
+</div><p><code>__this_module</code>是由内核模块的工具链为当前模块产生的一个<code>struct module</code>对象。</p>
+<p><code>struct file_operations</code>这个结构体中会有指向<code>struct module</code>对象的指针，主要是**为了保证<code>file_operations</code>中的函数在被调用时，模块不会被从系统中卸载。</p>
+<p>如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code>是空指针**，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
 <h4 id="2">2.</h4>
 <p>Linux驱动中，用的比较多的是<code>module_init</code>，这里涉及内核提供的<code>initcall</code>相关机制。</p>
 <p>关于该机制，可以参考Linux Insides的<a href="https://xinqiu.gitbooks.io/linux-insides-cn/content/Concepts/linux-cpu-3.html">这个部分</a>。这里结合实际可能遇到的代码，再补充几个需要注意的地方。</p>
+<p>首先，所有开机加载的驱动(非模块加载)，其<code>init</code>函数在编译后可以在<code>System.map</code>中找到，一般如果需要确认驱动的加载顺序，可以在该文件中查找。所有的<code>init</code>函数根据其实际的<code>initcall</code>顺序排列，并且是没有模块卸载函数的。</p>
+<p>其次，如果驱动是模块形式加载的，那么无论是用哪种<code>xxx_initcall</code>实际最后都是用的都是<code>module_init</code>，同时模块的卸载函数也是有用的，在<code>rmmod</code>时会被调用到。</p>
+<p>代码如下图所示：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#</span><span class="cp">ifndef MODULE </span><span class="c1">//表示编入内核
+</span><span class="c1"></span><span class="c1">//如果是编译进内核的模块，x函数最终形成的是
+</span><span class="c1"></span><span class="c1">//static initcall_t __initcall_xid这样的函数名称
+</span><span class="c1"></span><span class="cp">#</span><span class="cp">define module_init(x)	__initcall(x);</span><span class="cp">
+</span><span class="cp"></span><span class="cp">#</span><span class="cp">define module_exit(x)	__exitcall(x);</span><span class="cp">
+</span><span class="cp"></span>
+<span class="cp">#</span><span class="cp">else </span><span class="cm">/* 表示是动态加载的模式 */</span><span class="cp">
+</span><span class="cp"></span>
+<span class="cp">#</span><span class="cp">define early_initcall(fn)		module_init(fn)</span><span class="cp">
+</span><span class="cp"></span><span class="cm">/*.........*/</span>
+<span class="c1">//在模块代码中定义了init_module和cleanup_module函数，分别是对应传进来函数的别名
+</span><span class="c1"></span><span class="c1">//这两个函数insmod和rmmod时需要使用的
+</span><span class="c1"></span><span class="cp">#</span><span class="cp">define module_init(initfn)					\</span><span class="cp">
+</span><span class="cp"></span><span class="cp">	static inline initcall_t __maybe_unused __inittest(void)		\</span><span class="cp">
+</span><span class="cp"></span><span class="cp">	{ return initfn; }					\</span><span class="cp">
+</span><span class="cp"></span><span class="cp">	int init_module(void) __attribute__((alias(#initfn)));</span><span class="cp">
+</span><span class="cp"></span>
+<span class="cp">#</span><span class="cp">define module_exit(exitfn)					\</span><span class="cp">
+</span><span class="cp"></span><span class="cp">	static inline exitcall_t __maybe_unused __exittest(void)		\</span><span class="cp">
+</span><span class="cp"></span><span class="cp">	{ return exitfn; }					\</span><span class="cp">
+</span><span class="cp"></span><span class="cp">	void cleanup_module(void) __attribute__((alias(#exitfn)));</span><span class="cp">
+</span><span class="cp"></span><span class="cm">/*
+</span><span class="cm">可以看到如果是模块的话，module_init实际上是内部定义了一个函数和函数别名：
+</span><span class="cm"> //定义个__inittest函数，该函数返回一个initcall_t
+</span><span class="cm"> //其实就是检测initfn是不是能被_inittest返回，即initfn是否符合initcall_t的定义
+</span><span class="cm">static inline initcall_t __inittest(void) { return initfn; }
+</span><span class="cm">int init_module(void) alias initfn //initfn别名就是initfn
+</span><span class="cm">*/</span>
+
+<span class="cp">#</span><span class="cp">endif</span><span class="cp">
+</span></code></pre></td></tr></table>
+</div>
+</div><h4 id="3">3</h4>
+<p>在实际工作中，可能会遇到某些设备驱动之间有加载的依赖关系要求。有两种方法可以解决这个问题：</p>
+<ul>
+<li>最容易想到的是通过不同的<code>init</code>函数，调整驱动的<code>initcall</code>的位置。不过这里有个弊端，因为一般写的可能都是驱动程序，大部分用的都是<code>module_init</code>定义加载函数，比它更晚加载的就是<code>late_initcall</code>这样的，选择比较少(因为<code>module_init</code>对应是<code>device_initcall</code>级别)；</li>
+<li>另外一种方法就是通过内核提供的<code>component</code>机制，这个机制比较灵活，可以很好的解决驱动加载顺序的问题。使用起来相对简单，关于其实现原理及使用方法，可以参考<a href="/posts/components_sys_in_kernel/">这里</a></li>
+</ul>
+<p>####4
+如何指针的指针？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">//为4个字节的内存打上一个tag叫做a，当使用a，就表示访问a所代表的内存
+</span><span class="c1"></span><span class="kt">int</span> <span class="o">*</span><span class="n">b</span><span class="o">=</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">;</span> <span class="c1">//b这个变量表示的也是一段内存，这个内存存放的是a所代表的那段内存地址
+</span></code></pre></td></tr></table>
+</div>
+</div><p>变量就是代表的一段内存，放在左边就是表示取出内存的数据；放在右边，表示往这个无放数据；
+如何理解char_dev.c中__register_chr_region的二级指针的使用？</p>
+<p>####5
+什么是左值，什么是右值？</p>
 ]]></description>
                 
                 
@@ -52,6 +145,14 @@
                 
                 
                     
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://MubyHus.github.io/categories/linux/">Linux</category>
+                                
+                            
                         
                     
                         
@@ -99,7 +200,7 @@
                                 
                                 
                                 
-                                    <category domain="https://MubyHus.github.io/categories/linux/">linux</category>
+                                    <category domain="https://MubyHus.github.io/categories/linux/">Linux</category>
                                 
                             
                         
