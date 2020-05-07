@@ -61,7 +61,7 @@
     <meta name="author" content="mubyhus" />
     
     
-    <meta name="description" content="在之前的文章中，已经介绍过字符设备驱动框架，可以参考字符设备驱动框架。在之前的讲解设……" />
+    <meta name="description" content="在之前的文章中，已经介绍过字符设备驱动框架，可以参考字符设备驱动框架。在之前讲解设备……" />
     <meta name="keywords" content="linux" />
     
     <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
@@ -91,14 +91,14 @@
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "datePublished": "2020-04-14T21:32:53+08:00",
-        "dateModified": "2020-05-07T22:14:13+08:00",
+        "dateModified": "2020-05-07T22:32:04+08:00",
         "url": "https://MubyHus.github.io/posts/syscall_open_and_char_dev/",
         "headline": "系统调用与字符设备驱动",
-        "description": "在之前的文章中，已经介绍过字符设备驱动框架，可以参考字符设备驱动框架。在之前的讲解设……",
+        "description": "在之前的文章中，已经介绍过字符设备驱动框架，可以参考字符设备驱动框架。在之前讲解设备……",
         "keywords": "linux",
         "inLanguage" : "zh-CN",
         "articleSection": "posts",
-        "wordCount":  3724 ,
+        "wordCount":  4007 ,
         "image": ["https://MubyHus.github.io/images/syscall_open_and_char_dev/init_flow.svg"],
         "author": {
             "@type": "Person",
@@ -139,13 +139,13 @@
 
 
 <meta property="og:title" content="系统调用与字符设备驱动" />
-<meta property="og:description" content="在之前的文章中，已经介绍过字符设备驱动框架，可以参考字符设备驱动框架。在之前的讲解设……" />
+<meta property="og:description" content="在之前的文章中，已经介绍过字符设备驱动框架，可以参考字符设备驱动框架。在之前讲解设备……" />
 <meta property="og:url" content="https://MubyHus.github.io/posts/syscall_open_and_char_dev/" />
 <meta property="og:site_name" content="自言自语" />
 <meta property="og:locale" content="zh-CN" /><meta property="og:image" content="https://MubyHus.github.io/images/syscall_open_and_char_dev/init_flow.svg" />
 <meta property="og:type" content="article" />
     <meta property="article:published_time" content="2020-04-14T21:32:53+08:00" />
-    <meta property="article:modified_time" content="2020-05-07T22:14:13+08:00" />
+    <meta property="article:modified_time" content="2020-05-07T22:32:04+08:00" />
     
     <meta property="article:section" content="posts" />
     <meta property="article:tag" content="linux" />
@@ -224,7 +224,7 @@
     
     
         
-        <time datetime="2020-05-07T22:14:13+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.5.7</time>
+        <time datetime="2020-05-07T22:32:04+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.5.7</time>
     
     
     
@@ -239,20 +239,20 @@
     
     
         
-        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;3724</span>
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;4007</span>
     
     
     
 </div>
             
 
-            <div class="post-body"><p>在之前的文章中，已经介绍过字符设备驱动框架，可以参考<a href="/posts/char_device/">字符设备驱动框架</a>。在之前的讲解设备驱动框架时，只是给出了框架最终建立起来形成的数据结构关系，还有一个比较重要的部分，就是上层对具体驱动设备结点的读写操作，是如何从用户空间到内核空间，并最终调用到具体驱动的<code>fops</code>的。</p>
+            <div class="post-body"><p>在之前的文章中，已经介绍过字符设备驱动框架，可以参考<a href="/posts/char_device/">字符设备驱动框架</a>。在之前讲解设备驱动框架时，只是给出了框架最终建立起来形成的数据结构关系，还有一个比较重要的部分，就是上层对具体驱动设备结点的读写操作，是如何从用户空间到内核空间，并最终调用到具体驱动的<code>fops</code>的。</p>
 <p>本文旨在从使用者的角度，厘清驱动完成的<code>fops</code>是最终如何为用户空间提供服务的。这里会初步涉及到文件系统、系统调用等，文档相对也会比较长，为了能更容易理解这部分的内容，这里将会根据开机时的驱动加载顺序，看看一些数据结构和回调都是在什么时候设置好的，最后再从用户层跟踪下来，看看一个常用的<code>open</code>操作是如何走到驱动中的。</p>
 <h4 id="系统初始化步骤"><a href="#系统初始化步骤" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>系统初始化步骤</h4>
 <p>系统初始化时，会加载<code>devtmpfs</code>文件系统，所有的设备节点都是在这个文件系统中建立的。整个初始化的流程如下(点击查看大图)：
 <img src="/images/syscall_open_and_char_dev/init_flow.svg" alt="chrdevs" data-zoomable>
-经过如上图的初始化函数调用流程后，系统中存在一个名为<code>kdevtmpfs</code> 的内核线程。
-当设备驱动模型中的<code>device_add</code> 函数被调用时，内部会调用<code>devtmpfs_create_node</code> 这个函数，它实际上就是初始化了一个<code>struct req</code> 变量，然后将其挂到全局的<code>request</code> 链表上，通过<code>wake_up_process</code> 唤醒<code>kdevtmpfs</code> 线程，简略代码如下：</p>
+经过如上图的初始化函数调用流程后，系统中存在一个名为<code>kdevtmpfs</code> 的内核线程。这个内核线程是专门用于建立设备节点，当然如果设备节点的路径没有建立起来，也会同时建立其对应的目录。</p>
+<p>设备节点的建立，通常是在设备驱动注册时，即调用到设备驱动模型中的<code>device_add</code> 函数，内部会调用<code>devtmpfs_create_node</code> 这个函数，它实际上就是初始化了一个<code>struct req</code> 变量，然后将其挂到全局的<code>request</code> 链表上，通过<code>wake_up_process</code> 唤醒<code>kdevtmpfs</code> 线程，简略代码如下：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt"> 1
@@ -317,7 +317,7 @@
 </span><span class="c1"></span><span class="p">}</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>可以看到，每个创建的设备节点默认都是<code>0600</code> 这个权限。&quot;kdevtmpfs&quot;这个内核线程的作用是创建设备节点，对应的线程函数是<code>devtmpfsd</code> ，其简略代码如下:</p>
+</div><p>可以看到，每个创建的设备节点默认都是<code>0600</code> 这个权限。<code>kdevtmpfs</code> 这个内核线程对应的线程函数是<code>devtmpfsd</code> ，其简略代码如下:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt"> 1
@@ -407,9 +407,9 @@
 <span class="p">}</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>现在，我们需要确认一下<code>/dev/</code> 这个路径对应的<code>i_op</code> 是什么时候赋值的，其<code>mknod</code> 对应的哪个具体函数。</p>
+</div><p>也就说当我们想生成一个设备节点时，实际上是查找设备节点所在的上级目录，然后找到上级目录对应的<code>inode</code>，通过其内部的回调函数<code>mknod</code> 完成的。接下来，就需要确认一下，在<code>devtmpfs</code> 文件系统中的目录，这些目录对应的<code>inode-&gt;i_ops</code> 被设置成了什么，其<code>mknod</code> 对应的哪个具体函数。</p>
 <h5 id="dev路径的inode"><a href="#dev路径的inode" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>/dev路径的inode</h5>
-<p><code>devtmpfs</code>文件系统注册到系统，是在初始化的<code>devtmpfs_init</code> 这个函数里，当调用<code>register_filesystem</code> 将<code>devtmpfs</code> 注册进系统时，<code>devtmpfs</code> 对应的<code>file_system_type</code> 定义是：</p>
+<p><code>devtmpfs</code>文件系统注册到系统，是在初始化的<code>devtmpfs_init</code> 这个函数里，这个函数会调用<code>register_filesystem</code> 将<code>devtmpfs</code> 注册进系统。<code>devtmpfs</code> 文件系统对应的<code>struct file_system_type</code> 定义是：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
@@ -426,7 +426,7 @@
 <span class="p">}</span><span class="p">;</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>在内核线程<code>kdevtmpfs</code> 对应的线程函数<code>devtmpfsd</code> 中，会有如下的一行语句：</p>
+</div><p>注意这里的<code>dev_mount</code> 这个回调，这就是文件系统被<code>mount</code> 时会被系统调用的。在内核线程<code>kdevtmpfs</code> 对应的线程函数<code>devtmpfsd</code> 中，会有如下的一行语句：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
@@ -435,7 +435,7 @@
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="n">sys_mount</span><span class="p">(</span><span class="sa"></span><span class="s">&#34;</span><span class="s">devtmpfs</span><span class="s">&#34;</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">/</span><span class="s">&#34;</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">devtmpfs</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">MS_SILENT</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span><span class="p">;</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>这里调用的<code>sys_mount</code> 实际就是系统调用的<code>mount</code> 操作，对应的原型在<code>kernel/fs/namespace.c</code> 中：</p>
+</div><p>这里调用的<code>sys_mount</code> 实际就是系统调用的<code>mount</code> 操作，那么它就会回调到<code>dev_fs_type</code> 中的<code>dev_mount</code>这个回调函数。首先看一下系统的<code>mount</code> 是怎么调用到这个回调函数的，<code>mount</code> 系统调用对应的原型在<code>kernel/fs/namespace.c</code> 中：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
@@ -467,8 +467,8 @@
     <span class="c1">//.....
 </span></code></pre></td></tr></table>
 </div>
-</div><p>由于文件系统是<code>devtmpfs</code>，所以回调到了<code>dev_fs_type</code> 中的<code>dev_mount</code>函数。</p>
-<p>而在<code>dev_mount</code> 函数会经过比较长的调用链路，如下：</p>
+</div><p>这里由于文件系统是<code>devtmpfs</code>，所以回调<code>mount</code> 时就是<code>dev_fs_type</code> 中的<code>dev_mount</code>函数。</p>
+<p>而在<code>dev_mount</code> 函数会经过比较长的调用链路，生成<code>devtmpfs</code> 文件系统根节点的<code>inode</code>，如下：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
@@ -486,7 +486,7 @@
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="n">inode</span> <span class="o">=</span> <span class="n">shmem_get_inode</span><span class="p">(</span><span class="n">sb</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">S_IFDIR</span> <span class="o">|</span> <span class="n">sbinfo</span><span class="o">-</span><span class="o">&gt;</span><span class="n">mode</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">VM_NORESERVE</span><span class="p">)</span><span class="p">;</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>实际上就是为目录生成了一个对应的<code>inode</code>，注意这个时候传入的参数是<code>S_IFDIR</code>。到这里，就可以确定<code>/dev</code> 这个<code>dev</code> 目录对应的<code>inode</code> 是通过<code>shmem_get_inode</code> 完成的，如果没有猜错的话，这里面会对<code>inode</code> 的<code>i_op</code> 进行赋值：</p>
+</div><p>实际上就是为目录生成了一个对应的<code>inode</code>，注意这个时候传入的参数是<code>S_IFDIR</code>。到这里，就可以确定根目录(其实只要是目录)对应的<code>inode</code> 是通过<code>shmem_get_inode</code> 完成的，如果没有猜错的话，这里面会对<code>inode</code> 的<code>i_op</code> 进行赋值：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt"> 1
@@ -706,7 +706,7 @@
 	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
         <span class="c1">//....
 </span><span class="c1"></span>		<span class="n">kobj</span> <span class="o">=</span> <span class="n">kobj_lookup</span><span class="p">(</span><span class="n">cdev_map</span><span class="p">,</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_rdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">)</span><span class="p">;</span>
-        <span class="c1">//通过inode-&gt;i_rdev设备好找到了cdev
+        <span class="c1">//通过inode-&gt;i_rdev设备找到了cdev
 </span><span class="c1"></span>		<span class="n">new</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">kobj</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cdev</span><span class="p">,</span> <span class="n">kobj</span><span class="p">)</span><span class="p">;</span>
 		<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
         <span class="c1">//....
