@@ -19,7 +19,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 08 May 2020 23:14:38 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 08 May 2020 23:33:18 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
         
@@ -800,8 +800,7 @@
 </span></code></pre></td></tr></table>
 </div>
 </div><p><code>__this_module</code> 是由内核模块的工具链为当前模块产生的一个<code>struct module</code> 对象。</p>
-<p><code>struct file_operations</code> 这个结构体中会有指向<code>struct module</code> 对象的指针，主要是**为了保证<code>file_operations</code> 中的函数在被调用时，模块不会被从系统中卸载。</p>
-<p>如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code> 是空指针**，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
+<p><code>struct file_operations</code> 这个结构体中会有指向<code>struct module</code> 对象的指针，主要是<strong>为了保证<code>file_operations</code> 中的函数在被调用时，模块不会被从系统中卸载。如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code> 是空指针</strong>，没有任何作用——模块编译进内核，加载是在开机时，整个过程不会卸载。</p>
 <h4 id="2">2.</h4>
 <p>Linux驱动中，用的比较多的是<code>module_init</code>，这里涉及内核提供的<code>initcall</code> 相关机制。</p>
 <p>关于该机制，可以参考Linux Insides的<a href="https://xinqiu.gitbooks.io/linux-insides-cn/content/Concepts/linux-cpu-3.html">这个部分</a>。这里结合实际可能遇到的代码，再补充几个需要注意的地方。</p>
@@ -878,7 +877,7 @@
 <p>在实际工作中，可能会遇到某些设备驱动之间有加载的依赖关系要求。有两种方法可以解决这个问题：</p>
 <ul>
 <li>最容易想到的是通过不同的<code>init</code> 函数，调整驱动的<code>initcall</code> 的位置。不过这里有个弊端，因为一般写的可能都是驱动程序，大部分用的都是<code>module_init</code> 定义加载函数，比它更晚加载的就是<code>late_initcall</code> 这样的，选择比较少(因为<code>module_init</code> 对应是<code>device_initcall</code> 级别)；</li>
-<li>另外一种方法就是通过内核提供的<code>component</code> 机制，这个机制比较灵活，可以很好的解决驱动加载顺序的问题。使用起来相对简单。</li>
+<li><code>component</code> 机制是另外一种内核提供的，可用于顺序初始化的方法，这个机制比较灵活，可以很好的解决驱动加载顺序的问题。使用起来相对简单。</li>
 </ul>
 ]]></description>
                 
