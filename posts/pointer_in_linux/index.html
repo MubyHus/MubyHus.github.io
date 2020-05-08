@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" /><meta name="theme-color" content="#fff" />
+        <script>
+            const userPrefers = localStorage.getItem('theme');
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const lightModeMediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+            if (userPrefers === "dark") {
+                changeModeMeta("dark");
+            } else if (userPrefers === "light") {
+                changeModeMeta("light");
+            } else if (darkModeMediaQuery.matches) {
+                changeModeMeta("dark");
+            } else if (lightModeMediaQuery.matches) {
+                changeModeMeta("light");
+            }
+            function changeModeMeta() {
+                document.documentElement.setAttribute('data-theme', arguments[0]);
+                if (arguments[0] === "dark") {
+                    changeThemeColor("#1c1c21");
+                } else {
+                    changeThemeColor("#fff");
+                }
+            }
+            function changeThemeColor() {
+                document.querySelector('meta[name="theme-color"]').setAttribute('content', arguments[0]);
+            }
+        </script>
+
+    
+        
+        
+        <script>
+            if (window.location.host == "MubyHus.github.io" && window.location.protocol != "https:") {
+                window.location.protocol = "https";
+            }
+        </script>
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    
+    <meta name="renderer" content="webkit" />
+
+    <meta name="generator" content="Hugo 0.64.0-DEV" />
+
+    <title>Linux中的指针使用 | 自言自语</title>
+
+    <link rel="stylesheet" href="/css/meme.min.e3d38c21b70dc132f50d8e6fd87c31d8d1a93b341b56f77737c853c508b0dc32.css" integrity="sha256-49OMIbcNwTL1DY5v2Hwx2NGpOzQbVvd3N8hTxQiw3DI=" data-instant-track />
+
+    <link href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,500,700,700i|Noto+Serif+SC:400,500,700|Source+Code+Pro:400,400i,700,700i&display=swap&subset=chinese-simplified" rel="stylesheet" />
+
+    <meta name="author" content="mubyhus" />
+    
+    
+    <meta name="description" content="在Linux kernel 中有很多指针的使用，指针作为C 语言中比较重要的部分，有一些非常微妙的地……" />
+    <meta name="keywords" content="linux" />
+    
+    <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="自言自语" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="自言自语" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://MubyHus.github.io/posts/pointer_in_linux/" />
+
+
+
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2020-05-01T19:16:14+08:00",
+        "dateModified": "2020-05-08T22:48:10+08:00",
+        "url": "https://MubyHus.github.io/posts/pointer_in_linux/",
+        "headline": "Linux中的指针使用",
+        "description": "在Linux kernel 中有很多指针的使用，指针作为C 语言中比较重要的部分，有一些非常微妙的地……",
+        "keywords": "linux",
+        "inLanguage" : "zh-CN",
+        "articleSection": "posts",
+        "wordCount":  4195 ,
+        "image": ["https://MubyHus.github.io/images/pointer_in_linux/pointer_to_pointer.svg"],
+        "author": {
+            "@type": "Person",
+            "image": "https://MubyHus.github.io/icons/apple-touch-icon.png",
+            "url": "https://MubyHus.github.io/",
+            "name": "mubyhus"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "自言自语",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://MubyHus.github.io/icons/apple-touch-icon.png"
+            },
+            "url": "https://MubyHus.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://MubyHus.github.io/"
+        }
+    }
+</script>
+
+    
+
+
+
+<meta name="twitter:card" content="summary_large_image" />
+
+
+
+    
+
+
+
+
+
+
+<meta property="og:title" content="Linux中的指针使用" />
+<meta property="og:description" content="在Linux kernel 中有很多指针的使用，指针作为C 语言中比较重要的部分，有一些非常微妙的地……" />
+<meta property="og:url" content="https://MubyHus.github.io/posts/pointer_in_linux/" />
+<meta property="og:site_name" content="自言自语" />
+<meta property="og:locale" content="zh-CN" /><meta property="og:image" content="https://MubyHus.github.io/images/pointer_in_linux/pointer_to_pointer.svg" />
+<meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2020-05-01T19:16:14+08:00" />
+    <meta property="article:modified_time" content="2020-05-08T22:48:10+08:00" />
+    
+    <meta property="article:section" content="posts" />
+    <meta property="article:tag" content="linux" />
+
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        <div class="site-brand">
+            
+            <a href="/" class="brand">自言自语</a>
+            
+        </div>
+    </header>
+
+            
+    <nav class="nav">
+        <ul class="menu" id="menu">
+            
+                
+            
+            
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon menu-item-icon"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+                <li class="menu-item"><a href="/posts/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon menu-item-icon"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文章</span></a>
+                </li>
+            
+                <li class="menu-item"><a href="/categories/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon menu-item-icon"><path d="M149.333 56v80c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V56c0-13.255 10.745-24 24-24h101.333c13.255 0 24 10.745 24 24zm181.334 240v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm32-240v80c0 13.255 10.745 24 24 24H488c13.255 0 24-10.745 24-24V56c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24zm-32 80V56c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm-205.334 56H24c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24zM0 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H24c-13.255 0-24 10.745-24 24zm386.667-56H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zm0 160H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zM181.333 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24z"/></svg><span class="menu-item-name">分类</span></a>
+                </li>
+            
+                <li class="menu-item"><a href="/quotes/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon menu-item-icon"><path d="M400 480H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zM238.1 177.9L102.4 313.6l-6.3 57.1c-.8 7.6 5.6 14.1 13.3 13.3l57.1-6.3L302.2 242c2.3-2.3 2.3-6.1 0-8.5L246.7 178c-2.5-2.4-6.3-2.4-8.6-.1zM345 165.1L314.9 135c-9.4-9.4-24.6-9.4-33.9 0l-23.1 23.1c-2.3 2.3-2.3 6.1 0 8.5l55.5 55.5c2.3 2.3 6.1 2.3 8.5 0L345 199c9.3-9.3 9.3-24.5 0-33.9z"/></svg><span class="menu-item-name">摘句</span></a>
+                </li>
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon menu-item-icon"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        </ul>
+    </nav>
+
+            
+            
+    
+        
+            
+        
+        <div id="theme-toggle" onclick="modeSwitcher()">🌞</div>
+    
+
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        <article class="content post" data-align="justify" data-type="posts">
+
+            <h1 class="post-title">Linux中的指针使用</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2020-05-01T19:16:14+08:00" class="post-meta-item published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.5.1</time>
+    
+    
+        
+        <time datetime="2020-05-08T22:48:10+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.5.8</time>
+    
+    
+    
+        
+        
+        
+            
+                
+                <span class="post-meta-item category"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M464 128H272l-54.63-54.63c-6-6-14.14-9.37-22.63-9.37H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V176c0-26.51-21.49-48-48-48zm0 272H48V112h140.12l54.63 54.63c6 6 14.14 9.37 22.63 9.37H464v224z"/></svg>&nbsp;<a href="/categories/linux/" class="category-link">Linux</a></span>
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;4195</span>
+    
+    
+    
+</div>
+            
+
+            <div class="post-body"><p>在<code>Linux kernel</code> 中有很多指针的使用，指针作为<code>C</code> 语言中比较重要的部分，有一些非常微妙的地方。在<code>C专家编程</code> 这本书中，使用三个章节来详细说明其中的细节之处。本篇文章，将会结合书中所述及阅读<code>Linux</code> 代码中的一些指针使用技巧，通过实例阐述在实际使用指针时需要注意的地方。</p>
+<p>从个人角度上说，我并不是十分认同<em>指针</em>这个名称，主要是这个名称乍看之下很难让人有一个具体的认知。相反，在我的理解中，喜欢称之为<em>存放地址的变量</em>。在之后的行文中，可能这两个名称都会使用，请读者注意它们都是表达的同一个意思。</p>
+<h4 id="什么是变量"><a href="#什么是变量" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>什么是变量</h4>
+<p>在很多的<code>C</code>语言书籍中，在说到指针时，总是会提到变量的取地址操作，基本上都不会提到什么是变量。而理解什么是变量，是理解指针的第一步。在<code>C专家编程中</code>对此则解释得很清楚：</p>
+<blockquote>
+<p>首先要注意的是&quot;地址Y&quot;和&quot;地址Y的内容&quot;之间的区别，这是一个相当微妙之处，因为在大多数编程语言中我们用一个符号来表示这两样东西，由编译器根据上下文环境判断它的具体含义</p>
+</blockquote>
+<p><strong>一个变量名需要根据上下文来确定是表示地址还是地址的内容</strong>，这就是理解指针的基础。一般一个变量名作为<strong>左值(简单认为放在赋值运算符左边)</strong>，表示的是地址；同理，如果是<strong>右值</strong>表示的就是地址中的内容。左值是编译时就可以确定的，右值则需要运行时才能确定。</p>
+<p>基于上面的这个说法，我们来重新认识一下如下的代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//符号a在这里表示地址(即内存单元)，这个赋值就是对应的内存写入10
+</span><span class="c1"></span><span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> 
+<span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
+<span class="c1">//符号b表示地址，a在这里的含义则表示地址的内容
+</span><span class="c1"></span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>编译器实际上为每个变量都分配了一个地址，这个地址是编译的时候就知道的，而且这个变量的地址在整个运行中都是不变的；但是对于变量地址中存储的值，则是可能在运行时改变的。</p>
+<h4 id="数组和指针的访问差异"><a href="#数组和指针的访问差异" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>数组和指针的访问差异</h4>
+<blockquote>
+<p>当编译代码时，由于每个符号的地址都是确定的。编译器如果需要一个地址来做某种操作，它可以直接使用这个符号确定的地址进行，并不需要增加额外的指令再取得地址。</p>
+</blockquote>
+<p>这段话比较重要，但是又比较难以理解，这又是一个比较微妙的地方。下面我们看一下这样的例子：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">char</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sa"></span><span class="sc">&#39;</span><span class="sc">\0</span><span class="sc">&#39;</span><span class="p">}</span><span class="p">;</span>
+<span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="p">;</span> <span class="c1">//1
+</span><span class="c1"></span><span class="kt">char</span> <span class="n">b</span> <span class="o">=</span> <span class="sa"></span><span class="sc">&#39;</span><span class="sc">b</span><span class="sc">&#39;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+<span class="n">c</span> <span class="o">=</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>  <span class="c1">//2
+</span></code></pre></td></tr></table>
+</div>
+</div><p>首先，这里定义的<code>a/b/c/p</code> 变量在编译时都有一个确定的地址。<code>p</code>作为一个存放地址的变量(指针)，只是表示其对应地址(内存)存放的是一个地址数据，假设地址是4bytes，那么<code>p</code>的表示的内存单元实际上就是4bytes的长度。</p>
+<p>标号为1(第2行)的这个访问，实际上：</p>
+<ol>
+<li>编译器直接使用a表示的地址，假设是0x00004638，加上1;</li>
+<li>取得(0x000004638+1)这个地址的数据;</li>
+</ol>
+<p>这是由于<code>a</code> 这个地址在编译时是确定的，所以下标的这种访问(相当于进行地址的某种操作，这里是对地址进行加法)，直接在编译时就能计算出地址；</p>
+<p>标号为2(第5行)的这个访问，实际上：</p>
+<ol>
+<li>取得p这个地址的内容，假设p代表的地址是0x00001234，其内容为0x00004567;</li>
+<li>再取0x00004567这个内存的数据;</li>
+</ol>
+<p>这里<code>p</code> 的地址是编译时可以确定的，也就是说<code>p</code> 代表的地址，是编译时就可以获取到的；但是<code>p</code> 这个地址的存放的数据编译时是无法确定的，所以实际操作中，需要在获得<code>p</code> 地址的内容时，把这个内容作为地址再访问一次内存。即，<code>p</code> 这个地址的数据拿出来后，需要通过额外的指令，这个拿出来的数据作为指令的操作数，最终获取到数据。</p>
+<p>有了上面的这个基础，我们可以看看下面的代码为什么是错误的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//在xxxx.c文件中定义，假设此时数组名buffer代表的地址是0x00007890
+</span><span class="c1"></span><span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sa"></span><span class="sc">&#39;</span><span class="sc">\0</span><span class="sc">&#39;</span><span class="p">}</span><span class="p">;</span>
+
+<span class="c1">//在yyyy.c文件中进行声明，此时buffer变量被认为是指针，该变量本身地址是0x00007890
+</span><span class="c1"></span><span class="k">extern</span> <span class="kt">char</span> <span class="o">*</span><span class="n">buffer</span><span class="p">;</span>
+<span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sa"></span><span class="sc">&#39;</span><span class="sc">a</span><span class="sc">&#39;</span><span class="p">;</span><span class="c1">//1
+</span></code></pre></td></tr></table>
+</div>
+</div><p>我们在一个文件中定义了<code>buffer</code> 为<code>char</code> 型数组，在另一个文件中声明<code>buffer</code> 是其他地方定义的，作为<code>char</code> 型指针。</p>
+<p>当执行标号1的操作时，编译器：</p>
+<blockquote>
+<ol>
+<li>首先取得buffer代表的地址，比如是0x00007890;</li>
+<li>buffer此时在yyyy.c中被声明为指针，所以编译器认为buffer这个指针变量本身地址是0x00007890;</li>
+<li>buffer[0]，将会从buffer的地址中取出数据，作为指针与0相加，得到的是(‘\0’+0)这个地址;</li>
+<li>将数据往这个地址写入，由于写入的地址是NULL，异常出现;</li>
+</ol>
+</blockquote>
+<p>这里比较幸运的时候，<code>buffer</code> 这个数组里的数据即使被当成地址，也是一个非法地址。如果数据可以组成一个有效地址，那么就可能出现内存数据被篡改，出现难以发现的bug。这就是为什么数组的外部声明不能使用指针的原因。要解决这个问题，就是在外部声明的时候，也声明成数组，而不是指针即可。</p>
+<p>简单来说，就是对于数组名和指针，编译器采取的操作是不一样的。所以，数组名和指针是不能等同的。</p>
+<p>其实从前面也可以看到，指针变量是可以进行一定计算的，支持加法和减法。当指针做加减法时，实际上是与指针变量指向的类型有关的。定义时，之所以指针指向的类型重要，就是因为指针在做加减运算时需要使用类型信息。由于类型是编译时可以确定，同理这个类型代表的数据长度也是可以确定。所以在这种情况下，对于指针变量的加减运算，实际只有指针存放的地址是运行时才能确定。</p>
+<p>举个例子：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//假设data代表地址是0x00000001
+</span><span class="c1"></span><span class="kt">int</span> <span class="n">data</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span><span class="p">;</span>
+
+<span class="c1">//p本身的地址是0x00001234，此时0x00001234这个地址内存开始，存放了4bytes数据0x00000001
+</span><span class="c1"></span><span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+
+<span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><code>*(p+1) = 10</code>，这个操作：</p>
+<ol>
+<li>从p的地址取出存放里面的值，也就是拿到0x00000001;</li>
+<li>1此时代表1*sizeof(int)，与0x0000001相加，得到0x00000005;</li>
+<li>然后往0x00000005这个内存写入10，由于int占用4bytes，实际从0x00000005开始的4bytes都被更新了;</li>
+</ol>
+<p>解引用这个操作，即<code>*p</code> 这样的形式，作为右值，表示的是取得<code>p</code> 这个地址里的值，但是并不进一步从这个值代表的地址获取数据；作为右值，则是表示从<code>p</code> 代表的地址取得值，该值被作为地址，再从这个值代表的地址取出数据。这个其实和变量名的左值右值操作时意义是一致的。</p>
+<h4 id="数组和指针的可交换性"><a href="#数组和指针的可交换性" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>数组和指针的可交换性</h4>
+<p>在实际的代码中，数组名和指针在一些情况下是等同的。这个在<code>C专家编程</code> 中有整理说明，这里抄录一遍：</p>
+<blockquote>
+<ol>
+<li>表达式中的数组名(与声明不同)被编译器当作一个指向该数组第一个元素的指针</li>
+</ol>
+</blockquote>
+<p>当然这一条是有例外的，比如用<code>sizeof</code> 对数组名操作，实际上得到的数组占用的总的字节，此时数组名并不被当作指针。</p>
+<blockquote>
+<ol start="2">
+<li>数组的下标总是与指针的偏移量相同</li>
+</ol>
+</blockquote>
+<p>也就是说<code>a[i]</code> 总是被编译成<code>*(a+i)</code> ，方便记忆可以认为取下标操作就是取一个整数和指向类型T的指针，产生的结果是类型T。也就是说取下标操作，是能获取到值是T的结果的。</p>
+<blockquote>
+<ol start="3">
+<li>在函数参数的声明中，数组名被编译器当作是指向该数组第一个元素的指针</li>
+</ol>
+</blockquote>
+<p>简单来说，就是当一个数组名传递给一个函数时，实际上就是传递了数组中第一个元素的地址。此时在函数内部，看到的就是指针，这个指针没有数组名带有的特性，即在函数内部<code>sizeof</code> 就获取不到整个数组的长度了。</p>
+<h4 id="小结"><a href="#小结" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>小结</h4>
+<p>其实理解数组和指针一个最好的方式，是记住上面对于数组和指针的访问步骤。编译器在编译时，是知道数组名代表的地址的，所以涉及到数组名时，直接就将其地址用来进行操作(取下标/加减)，然后取得了对应地址的数据。</p>
+<p>而指针，本身有个地址，这个地址编译时确定，但是其内部存储的地址是未知的。所以对指针的访问，<strong>总是先从指针变量本身的地址获取到数据，然后这个数据被当成需要操作的地址</strong>。</p>
+<p>在这个过程中，也要注意当它们作为左值时，只是得到了地址(往地址写入数据)；而作为右值时，是从地址里面取得了值，也就是说，作为右值时，多了一个从地址里面拿到内存数据的过程。</p>
+<h4 id="kernel代码中对指针的使用"><a href="#kernel代码中对指针的使用" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>kernel代码中对指针的使用</h4>
+<p><code>kernel</code> 中对指针的使用是很频繁的，下面已经常使用的二级指针为例，看看二级指针的特别用途。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//kernel/fs/char_dev.c __register_chrdev_region函数
+</span><span class="c1"></span><span class="c1">//主要是在chrdevs这个全局数组中，找到一个可以插入新数据的位置
+</span><span class="c1"></span><span class="k">static</span> <span class="k">struct</span> <span class="n">char_device_struct</span> <span class="p">{</span>
+	<span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+    <span class="c1">//....
+</span><span class="c1"></span><span class="p">}</span> <span class="o">*</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">CHRDEV_MAJOR_HASH_SIZE</span><span class="p">]</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">*</span><span class="o">*</span><span class="n">cp</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">cp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">;</span> <span class="o">*</span><span class="n">cp</span><span class="p">;</span> <span class="n">cp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="p">(</span><span class="o">*</span><span class="n">cp</span><span class="p">)</span><span class="o">-</span><span class="o">&gt;</span><span class="n">next</span><span class="p">)</span>
+    <span class="c1">//.....
+</span></code></pre></td></tr></table>
+</div>
+</div><p><code>chardevs</code>是一个数组，这个数组每一项都存放一个地址(指向<code>struct char_device_struct</code>)。这里我们画一个图，看看这个for语句做了什么：
+<img src="/images/pointer_in_linux/pointer_to_pointer.svg" alt="pointer_to_pointer" data-zoomable></p>
+<ol>
+<li>我们按照图上的假设来看，在<code>for</code> 循环中，首先<code>cp</code> 这个存放地址的变量存放的地址是<code>&amp;chrdevs[1]</code>，即数组第2个元素的地址。从图上看到，<code>cp</code> 对应的内存单元此时值是<code>0x1238</code>。</li>
+<li>当执行<code>*cp</code> 操作时，编译器先找到<code>cp</code> 这个变量的地址，为<code>0xf005</code>，然后从中取得值为<code>0x1238</code>，这个值作为地址，取出该地址对应数据，是<code>0x7890</code>，不为0，循环继续；</li>
+<li><code>cp = &amp;(*cp)-&gt;next</code> 这一句被执行到，<code>(*cp)</code> 如步骤2所示得到了<code>0x7890</code>，由于<code>0x7890</code> 对应的是一个<code>struct char_device_struct</code> 结构体变量，所以<code>&amp;(*cp)-&gt;next</code> 就是取得了这个<code>struct char_device_struct</code> 内存中<code>next</code> 成员，然后对其取地址。就是取得了<code>struct char_device_struct</code> 中<code>next</code> 成员的地址。<strong>由于next域是结构体的第一个元素，它的地址和结构体变量的内存首地址是一致的</strong>，也是<code>0x7890</code>，填入到<code>cp</code> 中。</li>
+<li><code>for</code> 循环再次进行条件判断，同样是<code>*cp</code>，此时从<code>cp</code> 这个变量的地址<code>0xf005</code> 取出数据为<code>0x7890</code>，这个数据被作为一个地址，取出<code>0x7890</code> 存放的数据(即next存放的数据)，此时就是NULL，循环终止。</li>
+</ol>
+<p><strong>注意：当循环终止时，cp里面存放的地址是<code>0x7890</code>，这个地址是被系统分配了一个<code>struct char_device_struct</code> 变量的，只是这个变量的next这个成员存放的是NULL</strong>。新的<code>struct char_device_struct</code> 变量<code>cd</code> 通过这个方式挂到单项链表上：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">cd</span><span class="o">-</span><span class="o">&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="o">*</span><span class="n">cp</span><span class="p">;</span> <span class="c1">//*cp这个时候就是NULL，cd-&gt;next = NULL
+</span><span class="c1"></span><span class="o">*</span><span class="n">cp</span> <span class="o">=</span> <span class="n">cd</span><span class="p">;</span> <span class="c1">//*cp作为左值，即往0x7890存入cd这个地址，也就是说0x7890的next成员存放了cd的地址
+</span></code></pre></td></tr></table>
+</div>
+</div><p><strong>二级指针在这里的好处：</strong></p>
+<ol>
+<li>cp里存放的地址永远不会是NULL;</li>
+<li>查找时不需要额外的previous指针;</li>
+</ol>
+<p>如果这个地方使用一级指针，那么就需要做成如下的代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">*</span><span class="n">cp</span><span class="p">,</span> <span class="n">previous</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">cp</span> <span class="o">=</span> <span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">,</span> <span class="n">previous</span> <span class="o">=</span> <span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">;</span> <span class="n">cp</span><span class="p">;</span> <span class="n">previous</span> <span class="o">=</span> <span class="n">cp</span><span class="p">,</span> <span class="n">cp</span> <span class="o">=</span> <span class="n">cp</span><span class="o">-</span><span class="o">&gt;</span><span class="n">next</span><span class="p">)</span>
+    <span class="c1">//.....
+</span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到代码就变得比较啰嗦，还要辅助的指针变量。</p>
+<p>关于二级使用其他使用优点，还可以参考这篇文章：<a href="https://coolshell.cn/articles/8990.html" target="_blank" rel="noopener">利用二级指针删除单向链表</a></p>
+</div>
+
+        </article>
+
+        
+
+        
+    
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author">作者：<a href="https://MubyHus.github.io/" target="_blank" rel="noopener">mubyhus</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link">链接：<a href="/posts/pointer_in_linux/" target="_blank" rel="noopener">https://MubyHus.github.io/posts/pointer_in_linux/</a></li>
+            
+            <li class="copyright-item license">版权：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+        
+
+        
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/posts/syscall_open_and_char_dev/" class="related-link">系统调用与字符设备驱动</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/posts/linux_convention/" class="related-link">Linux代码惯例及小块知识</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/posts/char_device/" class="related-link">字符设备驱动框架</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/posts/device_driver_framework/" class="related-link">Linux设备驱动框架-从需求实现角度</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+        
+    
+
+
+        
+
+        
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+            
+                <li class="post-nav-next">
+                    <a href="/posts/syscall_open_and_char_dev/" rel="next">系统调用与字符设备驱动 ></a>
+                </li>
+            
+        </ul>
+    
+
+
+        
+
+    </div>
+</main>
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner"><div class="site-info">©&nbsp;2019–2020&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;mubyhus</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div>
+
+            
+        </div>
+    </footer>
+
+        </div>
+        <script src="/js/meme.min.29d7c0ac6f58249eb9e1d6e5085f6da35af90d1dd45b21ae2082bcd9afa4101e.js" integrity="sha256-KdfArG9YJJ654dblCF9to1r5DR3UWyGuIIK82a+kEB4=" data-no-instant></script>
+
+
+    <script data-no-instant>InstantClick.init();</script>
+
+
+
+
+    <script data-no-instant>
+        InstantClick.on('change', function () {
+            const userPrefers = localStorage.getItem('theme');
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const lightModeMediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+            if (userPrefers === "dark") {
+                changeModeMeta("dark");
+                changeMode("🌙", "chroma", "chroma-dark");
+            } else if (userPrefers === "light") {
+                changeModeMeta("light");
+                changeMode("🌞", "chroma-dark", "chroma");
+            } else if (darkModeMediaQuery.matches) {
+                changeModeMeta("dark");
+                changeMode("🌙", "chroma", "chroma-dark");
+            } else if (lightModeMediaQuery.matches) {
+                changeModeMeta("light");
+                changeMode("🌞", "chroma-dark", "chroma");
+            }
+        });
+    </script>
+
+    
+    <script src="https://cdn.jsdelivr.net/gh/cferdinandi/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+
+<script>
+    var scroll = new SmoothScroll('a[href*="#"]', {
+        speedAsDuration: true
+    });
+</script>
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css" integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG" crossorigin="anonymous" />
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        var getScript = (options) => {
+            var script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js',
+            integrity: 'sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1',
+            onload: () => {
+                getScript({
+                    src: 'https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/mhchem.min.js',
+                    integrity: 'sha384-oa0lfxCGjaU1LdYckhq8LZcP+JTf8cyJXe69O6VE6UrShzWveT6KiCElJrck/stm',
+                    onload: () => {
+                        getScript({
+                            src: 'https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/auto-render.min.js',
+                            integrity: 'sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+    <script>
+    if (typeof MathJax === 'undefined') {
+        window.MathJax = {
+            loader: {
+                load: ['[tex]/mhchem']
+            },
+            
+            tex: {
+                inlineMath: {'[+]': [['$', '$']]},
+                tags: 'ams',
+                packages: {'[+]': ['mhchem']}
+            }
+        };
+        (function () {
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+            script.defer = true;
+            document.head.appendChild(script);
+        })();
+    } else {
+        MathJax.texReset();
+        MathJax.typeset();
+    }
+</script>
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    mediumZoom('[data-zoomable]', {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+
+
+
+
+
+    </body>
+</html>
