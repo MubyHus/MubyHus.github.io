@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">自言自语</title>
     <subtitle type="html">自己写东西的地方，时不时更新</subtitle>
-    <updated>2020-05-08T22:48:25+08:00</updated>
+    <updated>2020-05-08T23:14:38+08:00</updated>
     <id>https://MubyHus.github.io/</id>
     <link rel="alternate" type="text/html" href="https://MubyHus.github.io/" />
     <link rel="self" type="application/atom+xml" href="https://MubyHus.github.io/atom.xml" />
@@ -788,7 +788,7 @@
             <title type="text">Linux代码惯例及小块知识</title>
             <link rel="alternate" type="text/html" href="https://MubyHus.github.io/posts/linux_convention/" />
             <id>https://MubyHus.github.io/posts/linux_convention/</id>
-            <updated>2020-04-28T22:48:36+08:00</updated>
+            <updated>2020-05-08T23:14:20+08:00</updated>
             <published>2020-02-04T13:53:37+08:00</published>
             <author>
                     <name>mubyhus</name>
@@ -797,7 +797,7 @@
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
     <summary type="html"><![CDATA[<ol>
-<li>1 #define THIS_MODULE(&__this_module) __this_module是由内核模块的工具链为当前模块产生的一个struc……</li>
+<li>1 #define THIS_MODULE(&__this_module) __this_module 是由内核模块的工具链为当前模块产生的一个struct module 对象。 struct file_operations 这个结构体……</li>
 </ol>]]></summary>
             
                 <content type="html"><![CDATA[<h4 id="1">1.</h4>
@@ -809,14 +809,14 @@
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#</span><span class="cp">define THIS_MODULE(&amp;__this_module)</span><span class="cp">
 </span></code></pre></td></tr></table>
 </div>
-</div><p><code>__this_module</code>是由内核模块的工具链为当前模块产生的一个<code>struct module</code>对象。</p>
-<p><code>struct file_operations</code>这个结构体中会有指向<code>struct module</code>对象的指针，主要是**为了保证<code>file_operations</code>中的函数在被调用时，模块不会被从系统中卸载。</p>
-<p>如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code>是空指针**，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
+</div><p><code>__this_module</code> 是由内核模块的工具链为当前模块产生的一个<code>struct module</code> 对象。</p>
+<p><code>struct file_operations</code> 这个结构体中会有指向<code>struct module</code> 对象的指针，主要是**为了保证<code>file_operations</code> 中的函数在被调用时，模块不会被从系统中卸载。</p>
+<p>如果驱动不是以模块的方式存在，而是直接编译进内核，那么<code>THIS_MODULE</code> 是空指针**，没有任何作用——模块编译进内核，则加载是在开机时，整个过程不会卸载。</p>
 <h4 id="2">2.</h4>
-<p>Linux驱动中，用的比较多的是<code>module_init</code>，这里涉及内核提供的<code>initcall</code>相关机制。</p>
+<p>Linux驱动中，用的比较多的是<code>module_init</code>，这里涉及内核提供的<code>initcall</code> 相关机制。</p>
 <p>关于该机制，可以参考Linux Insides的<a href="https://xinqiu.gitbooks.io/linux-insides-cn/content/Concepts/linux-cpu-3.html">这个部分</a>。这里结合实际可能遇到的代码，再补充几个需要注意的地方。</p>
-<p>首先，所有开机加载的驱动(非模块加载)，其<code>init</code>函数在编译后可以在<code>System.map</code>中找到，一般如果需要确认驱动的加载顺序，可以在该文件中查找。所有的<code>init</code>函数根据其实际的<code>initcall</code>顺序排列，并且是没有模块卸载函数的。</p>
-<p>其次，如果驱动是模块形式加载的，那么无论是用哪种<code>xxx_initcall</code>实际最后都是用的都是<code>module_init</code>，同时模块的卸载函数也是有用的，在<code>rmmod</code>时会被调用到。</p>
+<p>首先，所有开机加载的驱动(非模块加载)，其<code>init</code> 函数在编译后可以在<code>System.map</code> 中找到，一般如果需要确认驱动的加载顺序，可以在该文件中查找。所有的<code>init</code> 函数根据其实际的<code>initcall</code> 顺序排列，并且是没有模块卸载函数的。</p>
+<p>其次，如果驱动是模块形式加载的，那么无论是用哪种<code>xxx_initcall</code> 实际最后都是用的都是<code>module_init</code>，同时模块的卸载函数也是有用的，在<code>rmmod</code> 时会被调用到。</p>
 <p>代码如下图所示：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -887,25 +887,9 @@
 </div><h4 id="3">3</h4>
 <p>在实际工作中，可能会遇到某些设备驱动之间有加载的依赖关系要求。有两种方法可以解决这个问题：</p>
 <ul>
-<li>最容易想到的是通过不同的<code>init</code>函数，调整驱动的<code>initcall</code>的位置。不过这里有个弊端，因为一般写的可能都是驱动程序，大部分用的都是<code>module_init</code>定义加载函数，比它更晚加载的就是<code>late_initcall</code>这样的，选择比较少(因为<code>module_init</code>对应是<code>device_initcall</code>级别)；</li>
-<li>另外一种方法就是通过内核提供的<code>component</code>机制，这个机制比较灵活，可以很好的解决驱动加载顺序的问题。使用起来相对简单，关于其实现原理及使用方法，可以参考<a href="/posts/components_sys_in_kernel/">这里</a></li>
+<li>最容易想到的是通过不同的<code>init</code> 函数，调整驱动的<code>initcall</code> 的位置。不过这里有个弊端，因为一般写的可能都是驱动程序，大部分用的都是<code>module_init</code> 定义加载函数，比它更晚加载的就是<code>late_initcall</code> 这样的，选择比较少(因为<code>module_init</code> 对应是<code>device_initcall</code> 级别)；</li>
+<li>另外一种方法就是通过内核提供的<code>component</code> 机制，这个机制比较灵活，可以很好的解决驱动加载顺序的问题。使用起来相对简单。</li>
 </ul>
-<p>####4
-如何指针的指针？</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">//为4个字节的内存打上一个tag叫做a，当使用a，就表示访问a所代表的内存
-</span><span class="c1"></span><span class="kt">int</span> <span class="o">*</span><span class="n">b</span><span class="o">=</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">;</span> <span class="c1">//b这个变量表示的也是一段内存，这个内存存放的是a所代表的那段内存地址
-</span></code></pre></td></tr></table>
-</div>
-</div><p>变量就是代表的一段内存，放在左边就是表示取出内存的数据；放在右边，表示往这个无放数据；
-如何理解char_dev.c中__register_chr_region的二级指针的使用？</p>
-<p>####5
-什么是左值，什么是右值？</p>
 ]]></content>
             
             
