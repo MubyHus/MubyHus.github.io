@@ -19,10 +19,294 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 08 May 2020 23:33:18 +0800</lastBuildDate>
+        <lastBuildDate>Mon, 25 May 2020 21:15:50 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://MubyHus.github.io/rss.xml" />
         
+        
+            <item>
+                <title>spinlock解析</title>
+                <link>https://MubyHus.github.io/posts/spinlock/</link>
+                <guid isPermaLink="true">https://MubyHus.github.io/posts/spinlock/</guid>
+                <pubDate>Sat, 02 May 2020 19:16:14 +0800</pubDate>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<h4 id="相关术语">相关术语</h4>
+<p><code>UP（Uni-Processor）</code>：单核CPU系统，一个时刻只有一个进程在执行，这里只会发生中断和进程之间的抢占关系。</p>
+<p><code>SMP（Symmetric Multi-Processors）</code>：系统有多个处理器单元。各个处理器之间共享总线，内存等等。此时进程/中断都可能会访问资源竞争。</p>
+<p><code>临界区</code>：可以认为就是一个时间内只能有一个执行者的一段代码。</p>
+<p><code>PE (processing element)</code>：可以简单的任务是一个cpu core。</p>
+<p><code>抢占</code>：高优先级任务可运行时，会剥夺低优先级任务的执行，即使此时低优先级任务的时间片还没有用完。</p>
+<p><code>原子操作</code>：不会被打断的操作，该操作如果执行，肯定是执行完成，执行过程中不会受到其他任何干扰。</p>
+<p>接下的内容会以<code>arm64</code> 下的<code>SMP</code> 为例，详细介绍一下<code>spin_lock</code> 的实现。这个过程中会涉及一些<strong>汇编</strong>的内容，在遇到相关代码时再解释。</p>
+<p>在涉及到<strong>锁</strong>一类机制的理解时，最好在脑海中形成这样一个概念：<strong>C代码中的任何一个语句都不是原子的，也就是说，任何一句代码都可能被CPU打断，从而切换到其他的代码执行。</strong></p>
+<p>形成了这样的概念后，有利于在实际代码中小心对待锁的使用，同时可以更好的理解硬件提供的一系列方式，特别某些执行来保证原子操作。</p>
+<h4 id="spinlock的实现">spinlock的实现</h4>
+<p><code>spinlock</code>是内核中最基本的锁机制，其他的锁机制基本上都是再它的基础上衍生出来的。之所以需要锁这样的机制，实际上是说某一段代码，一次只能有一个执行者在跑这段代码，一般来说这样的一段代码，可能是操作硬件资源(读某些硬件寄存器)或者是操作某个内存中的数据。</p>
+<p>由于此文章主要关注于<code>spinlock</code>，所以接下说的<strong>锁</strong>都是默认指的<code>spinlock</code>。<code>spinlock</code> 的特点就是，如果当前操作者获取不到这个锁，就会进行自旋(spin)操作，也就说或一直尝试，直到最终成功获取到。由于这个特性，一般来说希望使用<code>spinlock</code> 的场合，临界区都能尽快执行完。</p>
+<p>在接下来的内容中，将会通过对代码的分析，着重解释清楚如下的两个问题：</p>
+<ol>
+<li><code>spinlock</code> 在<code>arm64</code> 上实现的原理；</li>
+<li><code>spinlock</code> 涉及的书籍中，都会特意提到，在由<code>spinlock</code> 保护的临界区的代码中，不能有睡眠的操作。这又是为什么？</li>
+</ol>
+<h5 id="spinlock接口及定义">spinlock接口及定义</h5>
+<p>自旋锁的定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//kernel/include/linux/spinlock_types.h
+</span><span class="c1"></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">spinlock</span> <span class="p">{</span>
+	<span class="k">union</span> <span class="p">{</span>
+		<span class="k">struct</span> <span class="n">raw_spinlock</span> <span class="n">rlock</span><span class="p">;</span>
+	<span class="p">}</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">spinlock_t</span><span class="p">;</span>
+
+<span class="c1">//kernel/include/linux/spinlock_types.h
+</span><span class="c1"></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">raw_spinlock</span> <span class="p">{</span>
+	<span class="n">arch_spinlock_t</span> <span class="n">raw_lock</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">raw_spinlock_t</span><span class="p">;</span>
+
+<span class="c1">//kernel/arch/arm64/include/asm/spinlock_types.h
+</span><span class="c1"></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+	<span class="n">u16</span> <span class="n">owner</span><span class="p">;</span>
+	<span class="n">u16</span> <span class="n">next</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">__aligned</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="n">arch_spinlock_t</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>实际上就是形成了如下的一个结构：
+<img src="/images/spinlock/spinlock.svg" alt="spinlock_def">
+这里需要注意一点，在最终的<code>arch_spinlock_t</code> 定义中，是4字节对齐的。**也就是说<code>owner</code> 和<code>next</code> 之间不会有字节空隙，内存分配总是连续的4字节。**这个特性在后面操作的时候会有体现。</p>
+<p><code>spinlock</code> 对应的相关操作接口如下图所示：
+<img src="/images/spinlock/spinlock_func.svg" alt="spinlock_func">
+总得来说就是<code>lock</code> 和<code>unlock</code> 这个一个互相相反的操作，只不过有些接口会有中断相关的控制。注意：<strong>对于一个spinlock，如果用了带irq的接口，那么所有使用到该spinlock的地方都得用这样一套接口，不能带irq接口与不带irq接口混合使用</strong>。</p>
+<h5 id="代码实现">代码实现</h5>
+<p>代码实现这里将会主要关注<strong>上锁</strong>这个动作的实现。以最简单的<code>void spin_lock(spinlock_t *lock)</code> 函数为例，其调用链条是：
+<img src="/images/spinlock/spinlock_invoke.svg" alt="spinlock_lock">
+可以看到，最后调用到了<code>void arch_spin_lock(arch_spinlock_t *lock)</code> 这个函数，这个函数不同的体系结构实现不同。在<code>arm64</code> 中，其代码如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//kernel/arch/arm64/include/asm/spinlock.h
+</span><span class="c1"></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="nf">arch_spin_lock</span><span class="p">(</span><span class="n">arch_spinlock_t</span> <span class="o">*</span><span class="n">lock</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">tmp</span><span class="p">;</span>
+	<span class="n">arch_spinlock_t</span> <span class="n">lockval</span><span class="p">,</span> <span class="n">newval</span><span class="p">;</span>
+
+	<span class="k">asm</span> <span class="k">volatile</span><span class="p">(</span>
+	<span class="cm">/* Atomically increment the next ticket. */</span>
+	<span class="cm">/* LL/SC */</span>
+<span class="sa"></span><span class="s">&#34;</span><span class="s">	prfm	pstl1strm, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将lock放到L1 cache中，加快访问速度
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">1:	ldaxr	%w0, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//从lock处load 32bit数据放到w0中；
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	add	%w1, %w0, %w5</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//w0 + 1 &lt;&lt; TICKET_SHIFT，就结果放到w1中。
+</span><span class="c1"></span>						<span class="c1">//注意arch_spinlock_t是4字节对齐的，此时就是对next++(注意字节序)
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	stxr	%w2, %w1, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将w1的数据存回lock对应的内存中，操作成功与否的指示保存在w2中
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	cbnz	%w2, 1b</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="c1">//如果w2不为0，则跳转到标号1继续执行；如果w2为0，表示存回内存的操作成功，继续执行
+</span><span class="c1"></span>	<span class="c1">//....
+</span><span class="c1"></span>	<span class="p">)</span>
+
+	<span class="cm">/* Did we get the lock? */</span>
+<span class="sa"></span><span class="s">&#34;</span><span class="s">	eor	%w1, %w0, %w0, ror #16</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将w0和w0循环右移的数据进行或运算，结果存入w1中
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	cbz	%w1, 3f</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//如果w1为0，则说明next和owner相等，跳转到标号3执行，此时说明获取到了锁；
+</span><span class="c1"></span>					<span class="c1">//如果w1不为0，说明没有获取到锁
+</span><span class="c1"></span>	<span class="cm">/*
+</span><span class="cm">	 * No: spin on the owner. Send a local event to avoid missing an
+</span><span class="cm">	 * unlock before the exclusive load.
+</span><span class="cm">	 */</span>
+<span class="sa"></span><span class="s">&#34;</span><span class="s">	sevl</span><span class="se">\n</span><span class="s">&#34;</span>
+<span class="sa"></span><span class="s">&#34;</span><span class="s">2:	wfe</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//没有获取到锁，CPU进入低功耗模式
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	ldaxrh	%w2, %4</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将owner值放入w2中，注意，owner是16bit的
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	eor	%w1, %w2, %w0, lsr #16</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//w0的next和w2中的owner进行或运算，结果存入w1
+</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	cbnz	%w1, 2b</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//如果w1不为0，说明没有获取到锁，继续低功耗等待；如果为0，说明获取到锁
+</span><span class="c1"></span>	<span class="cm">/* We got the lock. Critical section starts here. */</span>
+<span class="sa"></span><span class="s">&#34;</span><span class="s">3:</span><span class="s">&#34;</span><span class="c1">//memory barrier操作
+</span><span class="c1"></span>	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lockval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">newval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">+Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span>
+	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lock</span><span class="o">-</span><span class="o">&gt;</span><span class="n">owner</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">I</span><span class="s">&#34;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;</span><span class="o">&lt;</span> <span class="n">TICKET_SHIFT</span><span class="p">)</span>
+	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">memory</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>理解这一段汇编代码，关键在于对于C语言嵌入式汇编语法以及<code>arm64</code> 相关指令的了解。这里大致说明一下。</p>
+<p>C语言中嵌入汇编代码，遵循如下格式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="k">asm</span><span class="p">(</span>
+<span class="n">code</span>    <span class="cm">/*汇编指令*/</span>
+<span class="o">:</span> <span class="n">output</span> <span class="n">operand</span> <span class="n">list</span>     <span class="cm">/*输出操作数列表*/</span>
+<span class="o">:</span> <span class="n">input</span> <span class="n">operand</span> <span class="n">list</span>      <span class="cm">/*输入操作数列表*/</span>
+<span class="o">:</span> <span class="n">clobber</span> <span class="n">list</span>               <span class="cm">/*被改变资源列表*/</span>
+<span class="p">)</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>所以，前文中的汇编代码中：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c">	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lockval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">newval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">+Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span> <span class="c1">//输出操作数
+</span><span class="c1"></span>	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lock</span><span class="o">-</span><span class="o">&gt;</span><span class="n">owner</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">I</span><span class="s">&#34;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;</span><span class="o">&lt;</span> <span class="n">TICKET_SHIFT</span><span class="p">)</span> <span class="c1">//输入操作数
+</span><span class="c1"></span>	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">memory</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>每个操作数前面都会有一些限定字符，其大致意义如下：</p>
+<blockquote>
+<p><code>r</code>:表示变量会被先读到通用寄存器，之后的操作直接使用通用寄存器的数据；
+<code>m</code> 操作数据是放在内存，而不是通用寄存器中的；
+<code>I</code> 表示立即数；
+<code>=</code>表示只写，<code>+</code>表示可读写，<code>&amp;</code>只能作为输出；
+<code>Q</code> 表示只使用一个寄存器保存的内存地址，不是offset；</p>
+</blockquote>
+<p>注意一点：所有的输出操作数和输入操作数，按照顺序，可以使用对应的<code>%0、%1、....</code> 这样的方式访问，同时它们也被按照顺序存入<code>w0</code> 为起始的寄存器中。
+所以<code>w0</code> 指代<code>lockval</code> 变量的值，<code>w5</code> 指代<code>(1 &lt;&lt; TICKET_SHIFT)</code>。当然在实际汇编出来的代码中，可能变量不一定真的就存放在对应的寄存器，而是由编译器根据实际情况分配，但是这里的汇编代码可以按照这样的逻辑使用这些寄存器。</p>
+<p>另外前文中的汇编代码中，使用了一些<code>arm64</code> 对应的汇编指令，这些汇编指令由硬件提供了独占的行为。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-md" data-lang="md">ldaxr: 该指令原子地从内存中获取数据，对应的物理内存被标记为独占，这个标志会被独占写入指令检查
+stxr：该指令检查物理内存的独占标记，如果是本身这个PE之前独占获取，那么此时可以独占写入；
+		0表示独占写入成功，1表示失败，数据未写入
+ldaxrh：该指令与ldaxr相同，只是读取16bit，其他高位bit被全部设置成0
+</code></pre></td></tr></table>
+</div>
+</div><p>所以<code>spinlock</code> 这样的锁，并不能单纯靠软件实现，而是架构硬件需要提供这样独占访问的能力。现在我们模拟一下函数被调用的情况，看看实际过程中流程是怎么样。</p>
+<p>假设现在有两个执行体，分别在CPU0和CPU1上执行代码，最终都需要获取一个相同的<code>spinlock</code>。此时：</p>
+<ol>
+<li>CPU0执行到标号1的代码，将lock对应物理内存值通过<code>ldaxr</code> 存到了w0中，注意此时物理地址被置上了一个标志，只是CPU1才能往该内存写入数据；</li>
+<li>此时CPU1执行到标号1的代码，也将对应物理内存通过<code>ldaxr</code> 存到了它的w0中，执行后续操作；</li>
+<li>CPU0修改数据后，通过<code>stxr</code> 指令将修改数据存回物理地址，由于物理地址的独占标志检测通过，数据写入成功；此时CPU1修改了数据，也想写入，但是由于物理内存数据已经被CPU0改写，CPU1只能重新执行标号1，重新读取并改写；</li>
+<li>通过<code>ldxar</code> 和 <code>stxr</code>，从硬件上保证了lock对应的物理内存一次只能有一个执行体去修改。就算执行<code>add</code> 这样的指令时，由于调度流程，CPU0被切走执行其他指令(一般不会，由于关闭了抢占)，导致CPU1先写入成功了，但是CPU0在切回后，依然可以保证CPU0会重新获取内存中数据(被更新后的)，而不会使用旧的数据。</li>
+<li>接下来就是比较lock中的owner和next是否相同。在arch_spin_lock中，next++；在arch_spin_unlock中，owner++；只有相同才代表获取到锁；</li>
+</ol>
+<p>整个过程图示如下(绿色部分表示lock的owner或者next有变化的操作)：
+<img src="/images/spinlock/spinlock_acquire_sequence.png" alt="spinlock_lock"></p>
+<h5 id="为什么不能睡眠">为什么不能睡眠？</h5>
+<p>前文的部分内容详细说明了<code>spinlock</code> 的实现原理，从其中可以看出，自旋锁的正确操作依赖于物理架构提供的一些特殊指令。在<code>arm</code> 上就是一些独占操作指令。这里还有文章最开始的一个问题没有解决，为什么在<code>spinlock</code> 中不能休眠？这个实际上和上锁时会关闭抢占有关。</p>
+<p>从<code>void spin_lock(spinlock_t *lock)</code> 函数调用的流程看(调用流程图见前文)，在走到<code>__raw_spin_lock</code> 函数时，第一个作用就是把<strong>抢占</strong>给关了。这里一个最基本的问题就是，为什么需要关抢占，不关抢占行不行？</p>
+<p>要回答这个问题，可以还是实际看不关抢占的流程会是怎么样的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-md" data-lang="md"><span class="k">1.</span> CPU0的A进程，获取到锁，正在执行临界区代码；
+<span class="k">2.</span> CPU0上可能由于某些资源已经准备好，高优先级任务对应的进程B抢占A进程。
+<span class="k">3.</span> B进程中也来获取锁，但是此时owner和next不等，进入WFE；
+<span class="k">4.</span> CPU0由于WFE，A进程无法再执行，导致死锁产生；
+</code></pre></td></tr></table>
+</div>
+</div><p>所以这里必须把抢占关了，这样就可以解决上述问题。而关闭抢占，就会导致另外一个限制，就是临界区代码不能睡眠。同样看看如果睡眠会产生什么问题：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-md" data-lang="md"><span class="k">1.</span> CPU0的A进程，获取到锁，正在执行临界区代码，此时调用了睡眠相关api；
+<span class="k">2.</span> 睡眠相关api会主动调用schedule，导致CPU调度其他进程，此时B进程被调度；
+<span class="k">3.</span> B进程也获取锁，此时会失败，进入WFE；从而导致无法再有其他进程被调度；
+</code></pre></td></tr></table>
+</div>
+</div><p>上面的讨论都是基于<code>arm</code> 的代码，也就是获取不到锁就<code>WFE</code>。如果没有<code>WFE</code> 呢？同样的道理，B进程会一直占用CPU执行next和owner的对比。由于此时抢占已经被禁止，进程A永远不会被调用到，从而B进程一直无法获得锁。</p>
+<p>以上就是在<code>spinlock</code> 中不能进行睡眠的原因。从这些流程里面可以看到，在驱动中使用锁时需要特别注意，需要了解所使用的这类所有什么限制，从而在临界区代码中做一定的规避。</p>
+<h4 id="总结">总结</h4>
+<p><code>spinlock</code> 的代码，主要的难点还是在于汇编语言的实现部分。这一部分与体系结构强相关，同时又涉及到不同平台的汇编语言的差异。像这里以<code>arm</code> 平台为例，理解这些汇编代码最好的方式就是去<code>arm</code> 官网，下载该体系结构下的汇编文档。这部分的嵌入式汇编代码量并不大，只要可以根据文档，仔细理解每一句汇编的作用，结合硬件架构的能力，就能看到软件代码是如何与硬件结合完成对应功能的。</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://MubyHus.github.io/categories/linux/">Linux</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>Linux中的指针使用</title>
