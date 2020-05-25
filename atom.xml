@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">自言自语</title>
     <subtitle type="html">自己写东西的地方，时不时更新</subtitle>
-    <updated>2020-05-25T21:15:50+08:00</updated>
+    <updated>2020-05-26T07:33:40+08:00</updated>
     <id>https://MubyHus.github.io/</id>
     <link rel="alternate" type="text/html" href="https://MubyHus.github.io/" />
     <link rel="self" type="application/atom+xml" href="https://MubyHus.github.io/atom.xml" />
@@ -18,7 +18,7 @@
             <title type="text">spinlock解析</title>
             <link rel="alternate" type="text/html" href="https://MubyHus.github.io/posts/spinlock/" />
             <id>https://MubyHus.github.io/posts/spinlock/</id>
-            <updated>2020-05-25T21:15:21+08:00</updated>
+            <updated>2020-05-26T07:32:51+08:00</updated>
             <published>2020-05-02T19:16:14+08:00</published>
             <author>
                     <name>mubyhus</name>
@@ -90,7 +90,7 @@
 </div>
 </div><p>实际上就是形成了如下的一个结构：
 <img src="/images/spinlock/spinlock.svg" alt="spinlock_def">
-这里需要注意一点，在最终的<code>arch_spinlock_t</code> 定义中，是4字节对齐的。**也就是说<code>owner</code> 和<code>next</code> 之间不会有字节空隙，内存分配总是连续的4字节。**这个特性在后面操作的时候会有体现。</p>
+这里需要注意一点，在最终的<code>arch_spinlock_t</code> 定义中，是4字节对齐的。<strong>也就是说<code>owner</code> 和<code>next</code> 之间不会有字节空隙，内存分配总是连续的4字节。</strong> 这个特性在后面操作的时候会有体现。</p>
 <p><code>spinlock</code> 对应的相关操作接口如下图所示：
 <img src="/images/spinlock/spinlock_func.svg" alt="spinlock_func">
 总得来说就是<code>lock</code> 和<code>unlock</code> 这个一个互相相反的操作，只不过有些接口会有中断相关的控制。注意：<strong>对于一个spinlock，如果用了带irq的接口，那么所有使用到该spinlock的地方都得用这样一套接口，不能带irq接口与不带irq接口混合使用</strong>。</p>
@@ -213,10 +213,10 @@
 </div>
 </div><p>每个操作数前面都会有一些限定字符，其大致意义如下：</p>
 <blockquote>
-<p><code>r</code>:表示变量会被先读到通用寄存器，之后的操作直接使用通用寄存器的数据；
-<code>m</code> 操作数据是放在内存，而不是通用寄存器中的；
-<code>I</code> 表示立即数；
-<code>=</code>表示只写，<code>+</code>表示可读写，<code>&amp;</code>只能作为输出；
+<p><code>r</code>:表示变量会被先读到通用寄存器，之后的操作直接使用通用寄存器的数据；<br>
+<code>m</code> 操作数据是放在内存，而不是通用寄存器中的；<br>
+<code>I</code> 表示立即数；<br>
+<code>=</code> 表示只写，<code>+</code> 表示可读写，<code>&amp;</code> 只能作为输出；<br>
 <code>Q</code> 表示只使用一个寄存器保存的内存地址，不是offset；</p>
 </blockquote>
 <p>注意一点：所有的输出操作数和输入操作数，按照顺序，可以使用对应的<code>%0、%1、....</code> 这样的方式访问，同时它们也被按照顺序存入<code>w0</code> 为起始的寄存器中。

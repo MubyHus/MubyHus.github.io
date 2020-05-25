@@ -91,14 +91,14 @@
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "datePublished": "2020-05-02T19:16:14+08:00",
-        "dateModified": "2020-05-25T21:15:21+08:00",
+        "dateModified": "2020-05-26T07:32:51+08:00",
         "url": "https://MubyHus.github.io/posts/spinlock/",
         "headline": "spinlock解析",
         "description": "相关术语 UP（Uni-Processor）：单核CPU系统，一个时刻只有一个进程在执……",
         "keywords": "linux",
         "inLanguage" : "zh-CN",
         "articleSection": "posts",
-        "wordCount":  4203 ,
+        "wordCount":  4199 ,
         "image": ["https://MubyHus.github.io/images/spinlock/spinlock.svg","https://MubyHus.github.io/images/spinlock/spinlock_func.svg","https://MubyHus.github.io/images/spinlock/spinlock_invoke.svg","https://MubyHus.github.io/images/spinlock/spinlock_acquire_sequence.png"],
         "author": {
             "@type": "Person",
@@ -145,7 +145,7 @@
 <meta property="og:locale" content="zh-CN" /><meta property="og:image" content="https://MubyHus.github.io/images/spinlock/spinlock.svg" />
 <meta property="og:type" content="article" />
     <meta property="article:published_time" content="2020-05-02T19:16:14+08:00" />
-    <meta property="article:modified_time" content="2020-05-25T21:15:21+08:00" />
+    <meta property="article:modified_time" content="2020-05-26T07:32:51+08:00" />
     
     <meta property="article:section" content="posts" />
     <meta property="article:tag" content="linux" />
@@ -224,7 +224,7 @@
     
     
         
-        <time datetime="2020-05-25T21:15:21+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.5.25</time>
+        <time datetime="2020-05-26T07:32:51+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.5.26</time>
     
     
     
@@ -239,7 +239,7 @@
     
     
         
-        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;4203</span>
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;4199</span>
     
     
     
@@ -308,7 +308,7 @@
 </div>
 </div><p>实际上就是形成了如下的一个结构：
 <img src="/images/spinlock/spinlock.svg" alt="spinlock_def" data-zoomable>
-这里需要注意一点，在最终的<code>arch_spinlock_t</code> 定义中，是4字节对齐的。**也就是说<code>owner</code> 和<code>next</code> 之间不会有字节空隙，内存分配总是连续的4字节。**这个特性在后面操作的时候会有体现。</p>
+这里需要注意一点，在最终的<code>arch_spinlock_t</code> 定义中，是4字节对齐的。<strong>也就是说<code>owner</code> 和<code>next</code> 之间不会有字节空隙，内存分配总是连续的4字节。</strong> 这个特性在后面操作的时候会有体现。</p>
 <p><code>spinlock</code> 对应的相关操作接口如下图所示：
 <img src="/images/spinlock/spinlock_func.svg" alt="spinlock_func" data-zoomable>
 总得来说就是<code>lock</code> 和<code>unlock</code> 这个一个互相相反的操作，只不过有些接口会有中断相关的控制。注意：<strong>对于一个spinlock，如果用了带irq的接口，那么所有使用到该spinlock的地方都得用这样一套接口，不能带irq接口与不带irq接口混合使用</strong>。</p>
@@ -431,10 +431,10 @@
 </div>
 </div><p>每个操作数前面都会有一些限定字符，其大致意义如下：</p>
 <blockquote>
-<p><code>r</code>:表示变量会被先读到通用寄存器，之后的操作直接使用通用寄存器的数据；
-<code>m</code> 操作数据是放在内存，而不是通用寄存器中的；
-<code>I</code> 表示立即数；
-<code>=</code>表示只写，<code>+</code>表示可读写，<code>&amp;</code>只能作为输出；
+<p><code>r</code>:表示变量会被先读到通用寄存器，之后的操作直接使用通用寄存器的数据；<br>
+<code>m</code> 操作数据是放在内存，而不是通用寄存器中的；<br>
+<code>I</code> 表示立即数；<br>
+<code>=</code> 表示只写，<code>+</code> 表示可读写，<code>&amp;</code> 只能作为输出；<br>
 <code>Q</code> 表示只使用一个寄存器保存的内存地址，不是offset；</p>
 </blockquote>
 <p>注意一点：所有的输出操作数和输入操作数，按照顺序，可以使用对应的<code>%0、%1、....</code> 这样的方式访问，同时它们也被按照顺序存入<code>w0</code> 为起始的寄存器中。
