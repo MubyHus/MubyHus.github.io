@@ -1,77 +1,42 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN">
     <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
-    <meta charset="UTF-8" /><meta name="theme-color" content="#fff" />
-        <script>
-            const userPrefers = localStorage.getItem('theme');
-            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const lightModeMediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-            if (userPrefers === "dark") {
-                changeModeMeta("dark");
-            } else if (userPrefers === "light") {
-                changeModeMeta("light");
-            } else if (darkModeMediaQuery.matches) {
-                changeModeMeta("dark");
-            } else if (lightModeMediaQuery.matches) {
-                changeModeMeta("light");
-            }
-            function changeModeMeta() {
-                document.documentElement.setAttribute('data-theme', arguments[0]);
-                if (arguments[0] === "dark") {
-                    changeThemeColor("#1c1c21");
-                } else {
-                    changeThemeColor("#fff");
-                }
-            }
-            function changeThemeColor() {
-                document.querySelector('meta[name="theme-color"]').setAttribute('content', arguments[0]);
-            }
-        </script>
+    <meta charset="UTF-8" />
 
-    
-        
-        
-        <script>
-            if (window.location.host == "MubyHus.github.io" && window.location.protocol != "https:") {
-                window.location.protocol = "https";
-            }
-        </script>
-
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
-    
-    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    <meta name="generator" content="Hugo 0.64.0-DEV" /><meta name="theme-color" content="#fff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
     
     <meta http-equiv="Cache-Control" content="no-transform" />
     
     <meta http-equiv="Cache-Control" content="no-siteapp" />
-    
-    <meta name="renderer" content="webkit" />
 
-    <meta name="generator" content="Hugo 0.64.0-DEV" />
+    <title>Linux设备驱动框架-从需求实现角度 | 随意写</title>
 
-    <title>Linux设备驱动框架-从需求实现角度 | 自言自语</title>
+    <link rel="stylesheet" href="/css/meme.min.06572c5b217468bb826ea767e93c6ad50364fb1419e52e55c1a8d9aae637cea8.css"/>
 
-    <link rel="stylesheet" href="/css/meme.min.e3d38c21b70dc132f50d8e6fd87c31d8d1a93b341b56f77737c853c508b0dc32.css" integrity="sha256-49OMIbcNwTL1DY5v2Hwx2NGpOzQbVvd3N8hTxQiw3DI=" data-instant-track />
-
-    <link href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,500,700,700i|Noto+Serif+SC:400,500,700|Source+Code+Pro:400,400i,700,700i&display=swap&subset=chinese-simplified" rel="stylesheet" />
-
-    <meta name="author" content="mubyhus" />
     
     
-    <meta name="description" content="Linux中的设备驱动框架是比较复杂的，随着Linux的更新，现在基本上一个新的设备……" />
-    <meta name="keywords" content="linux, 设备驱动" />
+        <script src="/js/meme.min.b7267a2d8db2e02a90f7304d14fec6d2b260268defde5ce26145dae5310a3098.js"></script>
+
     
-    <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB&#43;Garamond:ital,wght@0,400;0,500;0,700;1,400;1,700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;family=Source&#43;Code&#43;Pro:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB&#43;Garamond:ital,wght@0,400;0,500;0,700;1,400;1,700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;family=Source&#43;Code&#43;Pro:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="mubyhus" /><meta name="description" content="Linux中的设备驱动框架是比较复杂的，随着Linux的更新，现在基本上一个新的设备" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="自言自语" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="随意写" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="application-name" content="自言自语" />
+    <meta name="application-name" content="随意写" />
     <meta name="msapplication-starturl" content="../../" />
     <meta name="msapplication-TileColor" content="#fff" />
     <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
@@ -82,9 +47,7 @@
 
     
     <link rel="canonical" href="https://MubyHus.github.io/posts/device_driver_framework/" />
-
-
-
+    
 
 <script type="application/ld+json">
     {
@@ -94,8 +57,7 @@
         "dateModified": "2020-04-25T09:04:48+08:00",
         "url": "https://MubyHus.github.io/posts/device_driver_framework/",
         "headline": "Linux设备驱动框架-从需求实现角度",
-        "description": "Linux中的设备驱动框架是比较复杂的，随着Linux的更新，现在基本上一个新的设备……",
-        "keywords": "linux, 设备驱动",
+        "description": "Linux中的设备驱动框架是比较复杂的，随着Linux的更新，现在基本上一个新的设备",
         "inLanguage" : "zh-CN",
         "articleSection": "posts",
         "wordCount":  2568 ,
@@ -106,10 +68,9 @@
             "url": "https://MubyHus.github.io/",
             "name": "mubyhus"
         },
-        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
         "publisher": {
             "@type": "Organization",
-            "name": "自言自语",
+            "name": "随意写",
             "logo": {
                 "@type": "ImageObject",
                 "url": "https://MubyHus.github.io/icons/apple-touch-icon.png"
@@ -125,8 +86,6 @@
 
     
 
-
-
 <meta name="twitter:card" content="summary_large_image" />
 
 
@@ -135,20 +94,17 @@
 
 
 
-
-
-
 <meta property="og:title" content="Linux设备驱动框架-从需求实现角度" />
-<meta property="og:description" content="Linux中的设备驱动框架是比较复杂的，随着Linux的更新，现在基本上一个新的设备……" />
+<meta property="og:description" content="Linux中的设备驱动框架是比较复杂的，随着Linux的更新，现在基本上一个新的设备" />
 <meta property="og:url" content="https://MubyHus.github.io/posts/device_driver_framework/" />
-<meta property="og:site_name" content="自言自语" />
-<meta property="og:locale" content="zh-CN" /><meta property="og:image" content="https://MubyHus.github.io/images/device_driver_framework/tree.png" />
+<meta property="og:site_name" content="随意写" />
+<meta property="og:locale" content="zh-cn" /><meta property="og:image" content="https://MubyHus.github.io/images/device_driver_framework/tree.png" />
 <meta property="og:type" content="article" />
-    <meta property="article:published_time" content="2020-01-02T10:16:44+08:00" />
-    <meta property="article:modified_time" content="2020-04-25T09:04:48+08:00" />
+    <meta property="article:published_time" content="2020-01-02T10:16:44&#43;08:00" />
+    <meta property="article:modified_time" content="2020-04-25T09:04:48&#43;08:00" />
     
     <meta property="article:section" content="posts" />
-    <meta property="article:tag" content="linux, 设备驱动" />
+
 
 
     
@@ -158,55 +114,77 @@
         <div class="container">
             
     <header class="header">
-        <div class="site-brand">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">随意写</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
             
-            <a href="/" class="brand">自言自语</a>
+        
+        
+        
+        
             
-        </div>
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/posts/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文章</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/categories/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon th"><path d="M149.333 56v80c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V56c0-13.255 10.745-24 24-24h101.333c13.255 0 24 10.745 24 24zm181.334 240v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm32-240v80c0 13.255 10.745 24 24 24H488c13.255 0 24-10.745 24-24V56c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24zm-32 80V56c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm-205.334 56H24c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24zM0 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H24c-13.255 0-24 10.745-24 24zm386.667-56H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zm0 160H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zM181.333 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24z"/></svg><span class="menu-item-name">分类</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/quotes/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon pen"><path d="M400 480H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zM238.1 177.9L102.4 313.6l-6.3 57.1c-.8 7.6 5.6 14.1 13.3 13.3l57.1-6.3L302.2 242c2.3-2.3 2.3-6.1 0-8.5L246.7 178c-2.5-2.4-6.3-2.4-8.6-.1zM345 165.1L314.9 135c-9.4-9.4-24.6-9.4-33.9 0l-23.1 23.1c-2.3 2.3-2.3 6.1 0 8.5l55.5 55.5c2.3 2.3 6.1 2.3 8.5 0L345 199c9.3-9.3 9.3-24.5 0-33.9z"/></svg><span class="menu-item-name">摘句</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
     </header>
 
-            
-    <nav class="nav">
-        <ul class="menu" id="menu">
-            
-                
-            
-            
-            
-                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon menu-item-icon"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
-                </li>
-            
-                <li class="menu-item"><a href="/posts/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon menu-item-icon"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文章</span></a>
-                </li>
-            
-                <li class="menu-item"><a href="/categories/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon menu-item-icon"><path d="M149.333 56v80c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V56c0-13.255 10.745-24 24-24h101.333c13.255 0 24 10.745 24 24zm181.334 240v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm32-240v80c0 13.255 10.745 24 24 24H488c13.255 0 24-10.745 24-24V56c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24zm-32 80V56c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm-205.334 56H24c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24zM0 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H24c-13.255 0-24 10.745-24 24zm386.667-56H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zm0 160H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zM181.333 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24z"/></svg><span class="menu-item-name">分类</span></a>
-                </li>
-            
-                <li class="menu-item"><a href="/quotes/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon menu-item-icon"><path d="M400 480H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zM238.1 177.9L102.4 313.6l-6.3 57.1c-.8 7.6 5.6 14.1 13.3 13.3l57.1-6.3L302.2 242c2.3-2.3 2.3-6.1 0-8.5L246.7 178c-2.5-2.4-6.3-2.4-8.6-.1zM345 165.1L314.9 135c-9.4-9.4-24.6-9.4-33.9 0l-23.1 23.1c-2.3 2.3-2.3 6.1 0 8.5l55.5 55.5c2.3 2.3 6.1 2.3 8.5 0L345 199c9.3-9.3 9.3-24.5 0-33.9z"/></svg><span class="menu-item-name">摘句</span></a>
-                </li>
-            
-                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon menu-item-icon"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
-                </li>
-            
-        </ul>
-    </nav>
+
+
 
             
-            
-    
-        
-            
-        
-        <div id="theme-toggle" onclick="modeSwitcher()">🌞</div>
-    
-
             
     <main class="main single" id="main">
     <div class="main-inner">
 
-        <article class="content post" data-align="justify" data-type="posts">
+        
 
-            <h1 class="post-title">Linux设备驱动框架-从需求实现角度</h1>
+        <article class="content post h-entry" data-align="justify" data-type="posts">
+
+            <h1 class="post-title p-name">Linux设备驱动框架-从需求实现角度</h1>
 
             
 
@@ -220,39 +198,30 @@
 <div class="post-meta">
     
         
-        <time datetime="2020-01-02T10:16:44+08:00" class="post-meta-item published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.1.2</time>
+        <time datetime="2020-01-02T10:16:44&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.1.2</time>
     
     
         
-        <time datetime="2020-04-25T09:04:48+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.4.25</time>
+        <time datetime="2020-04-25T09:04:48&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.4.25</time>
     
     
     
-        
-        
-        
-            
-                
-                <span class="post-meta-item category"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M464 128H272l-54.63-54.63c-6-6-14.14-9.37-22.63-9.37H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V176c0-26.51-21.49-48-48-48zm0 272H48V112h140.12l54.63 54.63c6 6 14.14 9.37 22.63 9.37H464v224z"/></svg>&nbsp;<a href="/categories/linux/" class="category-link">Linux</a></span>
-            
-        
     
-    
-        
-        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;2568</span>
     
     
     
 </div>
+
             
 
-            <div class="post-body"><p><code>Linux</code>中的设备驱动框架是比较复杂的，随着<code>Linux</code>的更新，现在基本上一个新的设备如果要接入系统，都会有对应设备厂商提供参考驱动，很少有需要从头开始写驱动的时候；即使真的需要写驱动，大多数时候也是通过简单的字符设备驱动就可以搞定的。</p>
+            <div class="post-body e-content">
+              <p><code>Linux</code>中的设备驱动框架是比较复杂的，随着<code>Linux</code>的更新，现在基本上一个新的设备如果要接入系统，都会有对应设备厂商提供参考驱动，很少有需要从头开始写驱动的时候；即使真的需要写驱动，大多数时候也是通过简单的字符设备驱动就可以搞定的。</p>
 <p>这就导致现在驱动开发变得越来越简单(当然这正是设备驱动框架需要达成的效果)，而另一方面，对于个人来说，如果只是满足于简单的设备驱动开发或者是在此基础上的一些debug，那么无疑是深入宝山空手而回。因为<code>Linux</code>为了解决设备复杂性/多样性而形成的这一套框架，是多种设计思想的产品化实现，是一个代码完全开放的说明书，涉及到的方方面面对其他的领域也有参考意义。退一步说，如果可以熟悉这一套框架，对于集成特定驱动，了解特定代码逻辑也是非常有好处的。这一套框架就像是一个个巨大的齿轮严丝合缝，而一个个设备驱动，就是根据框架形成的标准件，这些标准件卡在齿轮上，随着巨大的齿轮一起运转。</p>
 <hr>
 <p>接入<code>Linux</code>的设备各式各样，它们可能有共同的特点，比如都是<code>I2C</code>接口，但是功能上也有巨大的差异，有的是交互输入设备，有的则是数据采集设备，而有的设备可能兼具多种功能。如何更好的将这些设备接入系统，让设备可以正常工具，让系统可以正常获取到设备数据是框架需要完成的<strong>最基本要求</strong>；</p>
 <p>在功能正常的基础上，现代系统还有比较严格的功耗要求，为了达到功耗的要求，系统势必需要一套机制来管理设备的工作状态，在必要的时候(比如用户选择让系统休眠)，让设备进入低功耗状态。这里面实际上有许多的细节问题，特别是一些和设备相关的细节，比如设备需要特定的信号序列才能进入低功耗；而设备通常是接在某一个控制芯片上，而一个控制芯片可能下挂有多个设备，只有下挂的设备都进入休眠，该控制芯片才能进入休眠；或者是设备挂接于特定总线上，只有总线上所有设备都休眠，总线本身才能进入休眠降低功耗。实际上，可以把休眠所有涉及到的硬件，看成是一棵树，所有的设备是叶子结点，而控制芯片或者是总线是父节点。那么休眠，<strong>实际上就是从叶子结点开始的往根节点的广度遍历控制，而唤醒流程刚好相反，是从根节点开始一直到叶子结点的广度遍历控制</strong>；</p>
 <p>另外一方面，越来越多的热插拔设备(主要是<code>USB</code>相关)，进一步要求系统要能够动态接入和移除设备。比如一个<code>USB</code>键盘接入，作为一个<code>USB</code>标准设备，系统要能正常驱动该设备，而当键盘拔掉时，系统也要能及时感知并移除相关驱动。从这个角度看看，热插拔的设备就像是<strong>动态长出和掉落的叶子，系统负责对应叶子结点的生成与销毁</strong>。系统需要一套机制，能够准确地反馈设备的热插拔状态，从而保证系统的稳定。</p>
-<p><img src="/images/device_driver_framework/tree.png" alt="tree" data-zoomable></p>
+<p><img src="/images/device_driver_framework/tree.png" alt="tree"></p>
 <blockquote>
 <p>图片原地址：https://zhuanlan.zhihu.com/p/102399370</p>
 </blockquote>
@@ -266,65 +235,26 @@
 <p>回顾一下以上的需求和框架采取的对应方法，可以看到一个比较明显的抽象过程，无论是怎么样的抽象，最终要达到的目的都是，尽量让框架完成共有的操作、提供接口，而让具体的设备负责设备特有的一些属性功能。由于共有的操作和接口是稳定的，框架得以保持稳定；而为了能跟上各种设备日新月异的功能变化，当不同新设备的功能有公用的部分时，又可以通过子系统的方式进行抽象。</p>
 <p>当然<code>Linux</code>的设备驱动框架随着内核的更新，实际上内部也是在缓慢的变化的，就像<code>devfs</code>到<code>sysfs</code>的过渡，子系统的接口的变化等。这也会带来一些问题，比如一些比较旧的驱动在新的内核上可能需要重新<code>porting</code>，因为一些框架接口可能已经废弃不用，但是这种变化相对来说是比较容易转换的，而且这些变化并不会导致对用户层的接口产生变化。同时，设备驱动变得简单，代价就是框架会变得复杂，只是这种复杂变成了由子系统实现者来处理，而减轻了一般开发者的负担。</p>
 <p>后续一系列的文章将会根据这里的内容来分析内核的驱动框架，同时也会有部分子系统的解析，看看框架内部到底隐藏了什么，是如何完成上述的一些需求的。</p>
-</div>
+
+            </div>
+
+            
+
 
         </article>
 
         
 
         
-    
-    
-    
-        <ul class="post-copyright">
-            <li class="copyright-item author">作者：<a href="https://MubyHus.github.io/" target="_blank" rel="noopener">mubyhus</a></li>
-            
-                
-                
-                
-                
-                <li class="copyright-item link">链接：<a href="/posts/device_driver_framework/" target="_blank" rel="noopener">https://MubyHus.github.io/posts/device_driver_framework/</a></li>
-            
-            <li class="copyright-item license">版权：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
-            
-        </ul>
-    
 
 
         
 
-        
 
         
-    
-    
-        <div class="related-posts">
-            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
-            <ul class="related-list">
-                
-                    <li class="related-item">
-                        <a href="/posts/spinlock/" class="related-link">spinlock解析</a>
-                    </li>
-                
-                    <li class="related-item">
-                        <a href="/posts/pointer_in_linux/" class="related-link">Linux中的指针使用</a>
-                    </li>
-                
-                    <li class="related-item">
-                        <a href="/posts/syscall_open_and_char_dev/" class="related-link">系统调用与字符设备驱动</a>
-                    </li>
-                
-                    <li class="related-item">
-                        <a href="/posts/linux_convention/" class="related-link">Linux代码惯例及小块知识</a>
-                    </li>
-                
-                    <li class="related-item">
-                        <a href="/posts/char_device/" class="related-link">字符设备驱动框架</a>
-                    </li>
-                
-            </ul>
-        </div>
-    
+
+
+        
 
 
         
@@ -343,93 +273,47 @@
     
 
 
-        
 
         
 
+
         
-    
-        
-        
-    
-    
-    
-    
-        <ul class="post-nav">
-            
-                <li class="post-nav-prev">
-                    <a href="/posts/char_device/" rel="prev">< 字符设备驱动框架</a>
-                </li>
-            
-            
-                <li class="post-nav-next">
-                    <a href="/posts/blog_build/" rel="next">博客说明 ></a>
-                </li>
-            
-        </ul>
-    
 
 
         
+
+
+        
+
 
     </div>
 </main>
 
+
             
     <div id="back-to-top" class="back-to-top">
-        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
     </div>
+
 
             
     <footer id="footer" class="footer">
-        <div class="footer-inner"><div class="site-info">©&nbsp;2019–2020&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;mubyhus</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div>
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;2019–2021&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;mubyhus</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div>
+
+            
+
 
             
         </div>
     </footer>
 
+
         </div>
-        <script src="/js/meme.min.29d7c0ac6f58249eb9e1d6e5085f6da35af90d1dd45b21ae2082bcd9afa4101e.js" integrity="sha256-KdfArG9YJJ654dblCF9to1r5DR3UWyGuIIK82a+kEB4=" data-no-instant></script>
+        
 
-
-    <script data-no-instant>InstantClick.init();</script>
-
-
-
-
-    <script data-no-instant>
-        InstantClick.on('change', function () {
-            const userPrefers = localStorage.getItem('theme');
-            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const lightModeMediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-            if (userPrefers === "dark") {
-                changeModeMeta("dark");
-                changeMode("🌙", "chroma", "chroma-dark");
-            } else if (userPrefers === "light") {
-                changeModeMeta("light");
-                changeMode("🌞", "chroma-dark", "chroma");
-            } else if (darkModeMediaQuery.matches) {
-                changeModeMeta("dark");
-                changeMode("🌙", "chroma", "chroma-dark");
-            } else if (lightModeMediaQuery.matches) {
-                changeModeMeta("light");
-                changeMode("🌞", "chroma-dark", "chroma");
-            }
-        });
-    </script>
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/cferdinandi/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
-
-<script>
-    var scroll = new SmoothScroll('a[href*="#"]', {
-        speedAsDuration: true
-    });
-</script>
-
-
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css" integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG" crossorigin="anonymous" />
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous" />
 <script>
     if (typeof renderMathInElement === 'undefined') {
         var getScript = (options) => {
@@ -442,16 +326,16 @@
             document.body.appendChild(script);
         };
         getScript({
-            src: 'https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js',
-            integrity: 'sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1',
+            src: 'https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js',
+            integrity: 'sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4',
             onload: () => {
                 getScript({
-                    src: 'https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/mhchem.min.js',
-                    integrity: 'sha384-oa0lfxCGjaU1LdYckhq8LZcP+JTf8cyJXe69O6VE6UrShzWveT6KiCElJrck/stm',
+                    src: 'https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/mhchem.min.js',
+                    integrity: 'sha384-5gCAXJ0ZgozlShOzzT0OWArn7yCPGWVIvgo+BAd8NUKbCmulrJiQuCVR9cHlPHeG',
                     onload: () => {
                         getScript({
-                            src: 'https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/auto-render.min.js',
-                            integrity: 'sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI',
+                            src: 'https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js',
+                            integrity: 'sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa',
                             onload: () => {
                                 renderKaTex();
                             }
@@ -480,6 +364,7 @@
 
 
 
+
     <script>
     if (typeof MathJax === 'undefined') {
         window.MathJax = {
@@ -493,9 +378,9 @@
                 packages: {'[+]': ['mhchem']}
             }
         };
-        (function () {
+        (function() {
             var script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+            script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
             script.defer = true;
             document.head.appendChild(script);
         })();
@@ -509,15 +394,21 @@
 
 
 
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
 
 <script>
-    mediumZoom('[data-zoomable]', {
+    mediumZoom(document.querySelectorAll('div.post-body img'), {
         background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
     })
 </script>
 
 
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
 
 
 
