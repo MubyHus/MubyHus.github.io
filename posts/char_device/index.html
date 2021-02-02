@@ -3,7 +3,7 @@
     <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
     <meta charset="UTF-8" />
 
-    <meta name="generator" content="Hugo 0.64.0-DEV" /><meta name="theme-color" content="#fff" />
+    <meta name="generator" content="Hugo 0.81.0-DEV" /><meta name="theme-color" content="#fff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
@@ -14,7 +14,7 @@
 
     <title>字符设备驱动框架 | 随意写</title>
 
-    <link rel="stylesheet" href="/css/meme.min.06572c5b217468bb826ea767e93c6ad50364fb1419e52e55c1a8d9aae637cea8.css"/>
+    <link rel="stylesheet" href="/css/meme.min.b0f4e6cbadb07bd0901176f8196804c1e85d7ba7c4a75b80ea6e7446f600a931.css"/>
 
     
     
@@ -244,9 +244,9 @@
 	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">major</span><span class="p">;</span>
 	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">baseminor</span><span class="p">;</span>
 	<span class="kt">int</span> <span class="n">minorct</span><span class="p">;</span>
-	<span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="mi">64</span><span class="p">]</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="mi">64</span><span class="p">];</span>
 	<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">cdev</span><span class="p">;</span>		<span class="cm">/* will die */</span>
-<span class="p">}</span> <span class="o">*</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">CHRDEV_MAJOR_HASH_SIZE</span><span class="p">]</span><span class="p">;</span>
+<span class="p">}</span> <span class="o">*</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">CHRDEV_MAJOR_HASH_SIZE</span><span class="p">];</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>这个变量是一个存放<code>struct char_device_struct</code> 指针的数组，数组大小为255。数组每一项都保存指向<code>struct char_device_struct</code> 这个结构体变量的指针，这个结构体保存了它所代表的一段设备号的信息，有主设备号、起始次设备号、次设备号总数等；</p>
@@ -303,7 +303,7 @@
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">misc_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="c1">//....
-</span><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">register_chrdev</span><span class="p">(</span><span class="n">MISC_MAJOR</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">misc</span><span class="s">&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">misc_fops</span><span class="p">)</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">register_chrdev</span><span class="p">(</span><span class="n">MISC_MAJOR</span><span class="p">,</span> <span class="s">&#34;misc&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">misc_fops</span><span class="p">))</span>
 		<span class="k">goto</span> <span class="n">fail_printk</span><span class="p">;</span>
     <span class="c1">//.....
 </span><span class="c1"></span><span class="p">}</span>
@@ -323,11 +323,11 @@
 </span><span class="lnt">5
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">register_chrdev_region</span><span class="p">(</span><span class="n">MKDEV</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">same_with_misc</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
-<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">cd</span> <span class="o">=</span> <span class="n">cdev_alloc</span><span class="p">(</span><span class="p">)</span><span class="p">;</span>
-<span class="n">cd</span><span class="o">-</span><span class="o">&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="n">test_ops</span><span class="p">;</span>
-<span class="n">cd</span><span class="o">-</span><span class="o">&gt;</span><span class="n">owner</span> <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">;</span>
-<span class="n">cdev_add</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">MKDEV</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span><span class="p">;</span>
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">register_chrdev_region</span><span class="p">(</span><span class="n">MKDEV</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&#34;same_with_misc&#34;</span><span class="p">);</span>
+<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">cd</span> <span class="o">=</span> <span class="n">cdev_alloc</span><span class="p">();</span>
+<span class="n">cd</span><span class="o">-&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="n">test_ops</span><span class="p">;</span>
+<span class="n">cd</span><span class="o">-&gt;</span><span class="n">owner</span> <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">;</span>
+<span class="n">cdev_add</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">MKDEV</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="mi">10</span><span class="p">);</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>这样形成的结构如下：
@@ -388,21 +388,21 @@
     <span class="p">.</span><span class="n">owner</span>  <span class="o">=</span>   <span class="n">THIS_MODULE</span><span class="p">,</span>
     <span class="p">.</span><span class="n">open</span>   <span class="o">=</span>   <span class="n">first_drv_open</span><span class="p">,</span>
     <span class="p">.</span><span class="n">write</span>    <span class="o">=</span>    <span class="n">first_drv_write</span><span class="p">,</span>
-<span class="p">}</span><span class="p">;</span>
+<span class="p">};</span>
 
 <span class="kt">int</span> <span class="nf">fisrt_drv_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">major</span> <span class="o">=</span> <span class="n">register_chrdev</span><span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">first_drv</span><span class="s">&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">first_drv_fops</span><span class="p">)</span><span class="p">;</span>
+    <span class="n">major</span> <span class="o">=</span> <span class="n">register_chrdev</span><span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="s">&#34;first_drv&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">first_drv_fops</span><span class="p">);</span>
     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kt">void</span> <span class="nf">fisrt_drv_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">unregister_chrdev</span><span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">first_drv</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
+    <span class="n">unregister_chrdev</span><span class="p">(</span><span class="n">major</span><span class="p">,</span> <span class="s">&#34;first_drv&#34;</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="n">module_init</span><span class="p">(</span><span class="n">fisrt_drv_init</span><span class="p">)</span><span class="p">;</span>
-<span class="n">module_exit</span><span class="p">(</span><span class="n">fisrt_drv_init</span><span class="p">)</span><span class="p">;</span>
+<span class="n">module_init</span><span class="p">(</span><span class="n">fisrt_drv_init</span><span class="p">);</span>
+<span class="n">module_exit</span><span class="p">(</span><span class="n">fisrt_drv_init</span><span class="p">);</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>我们基于前文的情况，把这次分配的结构用图示表示出来：
@@ -420,7 +420,7 @@
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">def_chr_fops</span> <span class="o">=</span> <span class="p">{</span>
 	<span class="p">.</span><span class="n">open</span> <span class="o">=</span> <span class="n">chrdev_open</span><span class="p">,</span>
 	<span class="p">.</span><span class="n">llseek</span> <span class="o">=</span> <span class="n">noop_llseek</span><span class="p">,</span>
-<span class="p">}</span><span class="p">;</span>
+<span class="p">};</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>而后在<code>default_open</code> 这个函数中，会查找上面<code>cdev_map</code> 这个变量，然后找到与设备好关联的<code>struct probe</code> ，然后访问绑定的<code>struct cdev</code> 中<code>file_operations</code> ，这样就调用到了对应的设备驱动实现函数：</p>
@@ -457,22 +457,22 @@
 	<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
 	<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">new</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
     <span class="c1">//....
-</span><span class="c1"></span>	<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
 	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">struct</span> <span class="n">kobject</span> <span class="o">*</span><span class="n">kobj</span><span class="p">;</span>
 		<span class="kt">int</span> <span class="n">idx</span><span class="p">;</span>
         <span class="c1">//查找到对应的kojb
-</span><span class="c1"></span>		<span class="n">kobj</span> <span class="o">=</span> <span class="n">kobj_lookup</span><span class="p">(</span><span class="n">cdev_map</span><span class="p">,</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_rdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>		<span class="n">kobj</span> <span class="o">=</span> <span class="n">kobj_lookup</span><span class="p">(</span><span class="n">cdev_map</span><span class="p">,</span> <span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_rdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">);</span>
         <span class="c1">//获取kobj所在的cdev
-</span><span class="c1"></span>		<span class="n">new</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">kobj</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cdev</span><span class="p">,</span> <span class="n">kobj</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>		<span class="n">new</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">kobj</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cdev</span><span class="p">,</span> <span class="n">kobj</span><span class="p">);</span>
 	<span class="p">}</span>
     <span class="c1">//....
 </span><span class="c1"></span>    <span class="c1">//获取cdev的fops
-</span><span class="c1"></span>	<span class="n">fops</span> <span class="o">=</span> <span class="n">fops_get</span><span class="p">(</span><span class="n">p</span><span class="o">-</span><span class="o">&gt;</span><span class="n">ops</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">fops</span> <span class="o">=</span> <span class="n">fops_get</span><span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">ops</span><span class="p">);</span>
 	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fops</span><span class="p">)</span>
 		<span class="k">goto</span> <span class="n">out_cdev_put</span><span class="p">;</span>
     <span class="c1">//替换filp中的fops为cdev的
-</span><span class="c1"></span>	<span class="n">replace_fops</span><span class="p">(</span><span class="n">filp</span><span class="p">,</span> <span class="n">fops</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">replace_fops</span><span class="p">(</span><span class="n">filp</span><span class="p">,</span> <span class="n">fops</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></td></tr></table></div>
 </div>

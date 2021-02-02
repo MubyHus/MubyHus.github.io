@@ -3,7 +3,7 @@
     <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
     <meta charset="UTF-8" />
 
-    <meta name="generator" content="Hugo 0.64.0-DEV" /><meta name="theme-color" content="#fff" />
+    <meta name="generator" content="Hugo 0.81.0-DEV" /><meta name="theme-color" content="#fff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
@@ -14,7 +14,7 @@
 
     <title>系统调用与字符设备驱动 | 随意写</title>
 
-    <link rel="stylesheet" href="/css/meme.min.06572c5b217468bb826ea767e93c6ad50364fb1419e52e55c1a8d9aae637cea8.css"/>
+    <link rel="stylesheet" href="/css/meme.min.b0f4e6cbadb07bd0901176f8196804c1e85d7ba7c4a75b80ea6e7446f600a931.css"/>
 
     
     
@@ -267,21 +267,21 @@
 	<span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="c1">//....
 </span><span class="c1"></span>    <span class="c1">//mode默认是0600
-</span><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">=</span><span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
 		<span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">=</span> <span class="mo">0600</span><span class="p">;</span>
     <span class="c1">//记录设备是块设备还是字符设备
-</span><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">is_blockdev</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span><span class="p">)</span>
-		<span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">|</span><span class="o">=</span> <span class="n">S_IFBLK</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">is_blockdev</span><span class="p">(</span><span class="n">dev</span><span class="p">))</span>
+		<span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">|=</span> <span class="n">S_IFBLK</span><span class="p">;</span>
 	<span class="k">else</span>
-		<span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">|</span><span class="o">=</span> <span class="n">S_IFCHR</span><span class="p">;</span>
+		<span class="n">req</span><span class="p">.</span><span class="n">mode</span> <span class="o">|=</span> <span class="n">S_IFCHR</span><span class="p">;</span>
     <span class="c1">//....
-</span><span class="c1"></span>	<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">);</span>
 	<span class="n">req</span><span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">requests</span><span class="p">;</span>
 	<span class="n">requests</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">req</span><span class="p">;</span>
-	<span class="n">spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">)</span><span class="p">;</span>
+	<span class="n">spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">);</span>
 
     <span class="c1">//唤醒内核线程，创建设备节点
-</span><span class="c1"></span>	<span class="n">wake_up_process</span><span class="p">(</span><span class="kr">thread</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">wake_up_process</span><span class="p">(</span><span class="kr">thread</span><span class="p">);</span>
     <span class="c1">//.....
 </span><span class="c1"></span><span class="p">}</span>
 </code></pre></td></tr></table></div>
@@ -322,27 +322,27 @@
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//kernel/drivers/base/devtmpfs.c
 </span><span class="c1"></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">devtmpfsd</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="o">*</span><span class="n">err</span> <span class="o">=</span> <span class="n">sys_mount</span><span class="p">(</span><span class="sa"></span><span class="s">&#34;</span><span class="s">devtmpfs</span><span class="s">&#34;</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">/</span><span class="s">&#34;</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">devtmpfs</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">MS_SILENT</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span><span class="p">;</span>
+    <span class="o">*</span><span class="n">err</span> <span class="o">=</span> <span class="n">sys_mount</span><span class="p">(</span><span class="s">&#34;devtmpfs&#34;</span><span class="p">,</span> <span class="s">&#34;/&#34;</span><span class="p">,</span> <span class="s">&#34;devtmpfs&#34;</span><span class="p">,</span> <span class="n">MS_SILENT</span><span class="p">,</span> <span class="n">options</span><span class="p">);</span>
     <span class="c1">//......
 </span><span class="c1"></span>	<span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">)</span><span class="p">;</span>
+		<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">);</span>
 		<span class="k">while</span> <span class="p">(</span><span class="n">requests</span><span class="p">)</span> <span class="p">{</span>
 			<span class="k">struct</span> <span class="n">req</span> <span class="o">*</span><span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="p">;</span>
 			<span class="n">requests</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-			<span class="n">spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">)</span><span class="p">;</span>
+			<span class="n">spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">);</span>
 			<span class="k">while</span> <span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="p">{</span><span class="c1">//对所有的req，调用hanlde函数
-</span><span class="c1"></span>				<span class="k">struct</span> <span class="n">req</span> <span class="o">*</span><span class="n">next</span> <span class="o">=</span> <span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">next</span><span class="p">;</span>
-				<span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">err</span> <span class="o">=</span> <span class="n">handle</span><span class="p">(</span><span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">name</span><span class="p">,</span> <span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">mode</span><span class="p">,</span>
-						  <span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">uid</span><span class="p">,</span> <span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">gid</span><span class="p">,</span> <span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">dev</span><span class="p">)</span><span class="p">;</span>
-				<span class="n">complete</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req</span><span class="o">-</span><span class="o">&gt;</span><span class="n">done</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>				<span class="k">struct</span> <span class="n">req</span> <span class="o">*</span><span class="n">next</span> <span class="o">=</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
+				<span class="n">req</span><span class="o">-&gt;</span><span class="n">err</span> <span class="o">=</span> <span class="n">handle</span><span class="p">(</span><span class="n">req</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">mode</span><span class="p">,</span>
+						  <span class="n">req</span><span class="o">-&gt;</span><span class="n">uid</span><span class="p">,</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">gid</span><span class="p">,</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">dev</span><span class="p">);</span>
+				<span class="n">complete</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req</span><span class="o">-&gt;</span><span class="n">done</span><span class="p">);</span>
 				<span class="n">req</span> <span class="o">=</span> <span class="n">next</span><span class="p">;</span>
 			<span class="p">}</span>
-			<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">)</span><span class="p">;</span>
+			<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">);</span>
 		<span class="p">}</span>
         <span class="c1">//内核线程休眠，等到其他request到来
-</span><span class="c1"></span>		<span class="n">__set_current_state</span><span class="p">(</span><span class="n">TASK_INTERRUPTIBLE</span><span class="p">)</span><span class="p">;</span>
-		<span class="n">spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">)</span><span class="p">;</span>
-		<span class="n">schedule</span><span class="p">(</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>		<span class="n">__set_current_state</span><span class="p">(</span><span class="n">TASK_INTERRUPTIBLE</span><span class="p">);</span>
+		<span class="n">spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req_lock</span><span class="p">);</span>
+		<span class="n">schedule</span><span class="p">();</span>
 	<span class="p">}</span>
 	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
     <span class="c1">//.....
@@ -369,9 +369,9 @@
 <span class="p">{</span>
     <span class="c1">//....
 </span><span class="c1"></span>    <span class="c1">//获取到上层目录对应的inode，然后调用其mknod函数
-</span><span class="c1"></span>	<span class="n">error</span> <span class="o">=</span> <span class="n">dir</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_op</span><span class="o">-</span><span class="o">&gt;</span><span class="n">mknod</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span> <span class="n">dentry</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dev</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">error</span> <span class="o">=</span> <span class="n">dir</span><span class="o">-&gt;</span><span class="n">i_op</span><span class="o">-&gt;</span><span class="n">mknod</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span> <span class="n">dentry</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dev</span><span class="p">);</span>
 	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">error</span><span class="p">)</span>
-		<span class="n">fsnotify_create</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span> <span class="n">dentry</span><span class="p">)</span><span class="p">;</span>
+		<span class="n">fsnotify_create</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span> <span class="n">dentry</span><span class="p">);</span>
 	<span class="k">return</span> <span class="n">error</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></td></tr></table></div>
@@ -389,10 +389,10 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="k">struct</span> <span class="n">file_system_type</span> <span class="n">dev_fs_type</span> <span class="o">=</span> <span class="p">{</span>
-	<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">devtmpfs</span><span class="s">&#34;</span><span class="p">,</span>
+	<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;devtmpfs&#34;</span><span class="p">,</span>
 	<span class="p">.</span><span class="n">mount</span> <span class="o">=</span> <span class="n">dev_mount</span><span class="p">,</span> <span class="c1">//这个就是文件系统被mount时会被系统回调的函数
 </span><span class="c1"></span>	<span class="p">.</span><span class="n">kill_sb</span> <span class="o">=</span> <span class="n">kill_litter_super</span><span class="p">,</span>
-<span class="p">}</span><span class="p">;</span>
+<span class="p">};</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>注意这里的<code>dev_mount</code> 这个回调，这就是文件系统被<code>mount</code> 时会被系统调用的。在内核线程<code>kdevtmpfs</code> 对应的线程函数<code>devtmpfsd</code> 中，会有如下的一行语句：</p>
@@ -401,7 +401,7 @@
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">sys_mount</span><span class="p">(</span><span class="sa"></span><span class="s">&#34;</span><span class="s">devtmpfs</span><span class="s">&#34;</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">/</span><span class="s">&#34;</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">devtmpfs</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">MS_SILENT</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span><span class="p">;</span>
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">sys_mount</span><span class="p">(</span><span class="s">&#34;devtmpfs&#34;</span><span class="p">,</span> <span class="s">&#34;/&#34;</span><span class="p">,</span> <span class="s">&#34;devtmpfs&#34;</span><span class="p">,</span> <span class="n">MS_SILENT</span><span class="p">,</span> <span class="n">options</span><span class="p">);</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>这里调用的<code>sys_mount</code> 实际就是系统调用的<code>mount</code> 操作，那么它就会回调到<code>dev_fs_type</code> 中的<code>dev_mount</code>这个回调函数。首先看一下系统的<code>mount</code> 是怎么调用到这个回调函数的，<code>mount</code> 系统调用对应的原型在<code>kernel/fs/namespace.c</code> 中：</p>
@@ -432,7 +432,7 @@
 <span class="p">{</span>
     <span class="k">struct</span> <span class="n">dentry</span> <span class="o">*</span><span class="n">root</span><span class="p">;</span>
     <span class="c1">//.....
-</span><span class="c1"></span>	<span class="n">root</span> <span class="o">=</span> <span class="n">type</span><span class="o">-</span><span class="o">&gt;</span><span class="n">mount</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">root</span> <span class="o">=</span> <span class="n">type</span><span class="o">-&gt;</span><span class="n">mount</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
     <span class="c1">//.....
 </span></code></pre></td></tr></table></div>
 </div>
@@ -443,7 +443,7 @@
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">dev_mount</span><span class="o">-</span><span class="o">&gt;</span><span class="n">mount_single</span><span class="o">-</span><span class="o">&gt;</span><span class="n">shmem_fill_super</span><span class="o">-</span><span class="o">&gt;</span><span class="n">shmem_get_inode</span>
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">dev_mount</span><span class="o">-&gt;</span><span class="n">mount_single</span><span class="o">-&gt;</span><span class="n">shmem_fill_super</span><span class="o">-&gt;</span><span class="n">shmem_get_inode</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>最后<code>shmem_get_inode</code> 函数返回的是文件系统挂载点的<code>inode</code>：</p>
@@ -452,7 +452,7 @@
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">inode</span> <span class="o">=</span> <span class="n">shmem_get_inode</span><span class="p">(</span><span class="n">sb</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">S_IFDIR</span> <span class="o">|</span> <span class="n">sbinfo</span><span class="o">-</span><span class="o">&gt;</span><span class="n">mode</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">VM_NORESERVE</span><span class="p">)</span><span class="p">;</span>
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">inode</span> <span class="o">=</span> <span class="n">shmem_get_inode</span><span class="p">(</span><span class="n">sb</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">S_IFDIR</span> <span class="o">|</span> <span class="n">sbinfo</span><span class="o">-&gt;</span><span class="n">mode</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">VM_NORESERVE</span><span class="p">);</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>实际上就是为目录生成了一个对应的<code>inode</code>，注意这个时候传入的参数是<code>S_IFDIR</code>。到这里，就可以确定根目录(其实只要是目录)对应的<code>inode</code> 是通过<code>shmem_get_inode</code> 完成的，如果没有猜错的话，这里面会对<code>inode</code> 的<code>i_op</code> 进行赋值：</p>
@@ -493,20 +493,20 @@
 <span class="p">{</span>
 	<span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">;</span>
     <span class="c1">//....
-</span><span class="c1"></span>	<span class="n">inode</span> <span class="o">=</span> <span class="n">new_inode</span><span class="p">(</span><span class="n">sb</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">inode</span> <span class="o">=</span> <span class="n">new_inode</span><span class="p">(</span><span class="n">sb</span><span class="p">);</span>
 	<span class="k">if</span> <span class="p">(</span><span class="n">inode</span><span class="p">)</span> <span class="p">{</span>
         <span class="c1">//.....
 </span><span class="c1"></span>		<span class="k">switch</span> <span class="p">(</span><span class="n">mode</span> <span class="o">&amp;</span> <span class="n">S_IFMT</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">default</span><span class="o">:</span> <span class="c1">//如果是字符设备节点，走这个流程
-</span><span class="c1"></span>            <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_op</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">shmem_special_inode_operations</span><span class="p">;</span>
-			<span class="n">init_special_inode</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dev</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>            <span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_op</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">shmem_special_inode_operations</span><span class="p">;</span>
+			<span class="n">init_special_inode</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dev</span><span class="p">);</span>
 			<span class="k">break</span><span class="p">;</span>
 		<span class="k">case</span> <span class="nl">S_IFREG</span><span class="p">:</span>
             <span class="c1">//....
 </span><span class="c1"></span>			<span class="k">break</span><span class="p">;</span>
 		<span class="k">case</span> <span class="nl">S_IFDIR</span><span class="p">:</span> <span class="c1">//如果是建立一个文件夹，走这个流程
 </span><span class="c1"></span>            <span class="c1">//.....
-</span><span class="c1"></span>			<span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_op</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">shmem_dir_inode_operations</span><span class="p">;</span>
+</span><span class="c1"></span>			<span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_op</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">shmem_dir_inode_operations</span><span class="p">;</span>
 			<span class="c1">//...
 </span><span class="c1"></span>			<span class="k">break</span><span class="p">;</span>
 		<span class="k">case</span> <span class="nl">S_IFLNK</span><span class="p">:</span>
@@ -536,10 +536,10 @@
 <td class="lntd">
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="nf">init_special_inode</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="n">umode_t</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dev_t</span> <span class="n">rdev</span><span class="p">)</span>
 <span class="p">{</span>
-	<span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_mode</span> <span class="o">=</span> <span class="n">mode</span><span class="p">;</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">S_ISCHR</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_fop</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">def_chr_fops</span><span class="p">;</span> <span class="c1">//指定i_fops为def_chr_fops
-</span><span class="c1"></span>		<span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_rdev</span> <span class="o">=</span> <span class="n">rdev</span><span class="p">;</span><span class="c1">//i_rdev保存了设备号
+	<span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_mode</span> <span class="o">=</span> <span class="n">mode</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">S_ISCHR</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_fop</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">def_chr_fops</span><span class="p">;</span> <span class="c1">//指定i_fops为def_chr_fops
+</span><span class="c1"></span>		<span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_rdev</span> <span class="o">=</span> <span class="n">rdev</span><span class="p">;</span><span class="c1">//i_rdev保存了设备号
 </span><span class="c1"></span>	<span class="p">}</span>
     <span class="c1">//....
 </span><span class="c1"></span><span class="p">}</span>
@@ -595,26 +595,26 @@
 </span><span class="c1"></span><span class="n">SYSCALL_DEFINE3</span><span class="p">(</span><span class="n">open</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">umode_t</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
 
 <span class="c1">//调用函数链路
-</span><span class="c1"></span><span class="n">do_sys_open</span><span class="o">-</span><span class="o">&gt;</span><span class="n">do_filp_open</span><span class="o">-</span><span class="o">&gt;</span><span class="n">path_openat</span><span class="o">-</span><span class="o">&gt;</span><span class="n">do_last</span><span class="o">-</span><span class="o">&gt;</span><span class="n">vfs_open</span><span class="o">-</span><span class="o">&gt;</span><span class="n">do_dentry_open</span>
+</span><span class="c1"></span><span class="n">do_sys_open</span><span class="o">-&gt;</span><span class="n">do_filp_open</span><span class="o">-&gt;</span><span class="n">path_openat</span><span class="o">-&gt;</span><span class="n">do_last</span><span class="o">-&gt;</span><span class="n">vfs_open</span><span class="o">-&gt;</span><span class="n">do_dentry_open</span>
 
 <span class="k">static</span> <span class="kt">int</span> <span class="n">do_dentry_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">f</span><span class="p">,</span>
 			  <span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span>
-			  <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">open</span><span class="p">)</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">)</span><span class="p">,</span>
+			  <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">open</span><span class="p">)(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="p">),</span>
 			  <span class="k">const</span> <span class="k">struct</span> <span class="n">cred</span> <span class="o">*</span><span class="n">cred</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="c1">//......
 </span><span class="c1"></span>    <span class="c1">//获取设备节点对应的inode-&gt;i_fop
 </span><span class="c1"></span>    <span class="c1">//这个就是上面节点创建时被设置的def_chr_fops
-</span><span class="c1"></span>	<span class="n">f</span><span class="o">-</span><span class="o">&gt;</span><span class="n">f_op</span> <span class="o">=</span> <span class="n">fops_get</span><span class="p">(</span><span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_fop</span><span class="p">)</span><span class="p">;</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">WARN_ON</span><span class="p">(</span><span class="o">!</span><span class="n">f</span><span class="o">-</span><span class="o">&gt;</span><span class="n">f_op</span><span class="p">)</span><span class="p">)</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="c1"></span>	<span class="n">f</span><span class="o">-&gt;</span><span class="n">f_op</span> <span class="o">=</span> <span class="n">fops_get</span><span class="p">(</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_fop</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">WARN_ON</span><span class="p">(</span><span class="o">!</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">f_op</span><span class="p">)))</span> <span class="p">{</span>
 		<span class="n">error</span> <span class="o">=</span> <span class="o">-</span><span class="n">ENODEV</span><span class="p">;</span>
 		<span class="k">goto</span> <span class="n">cleanup_all</span><span class="p">;</span>
 	<span class="p">}</span>
 
     <span class="c1">//此时open就是def_chr_fops-&gt;open
-</span><span class="c1"></span>	<span class="n">open</span> <span class="o">=</span> <span class="n">f</span><span class="o">-</span><span class="o">&gt;</span><span class="n">f_op</span><span class="o">-</span><span class="o">&gt;</span><span class="n">open</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">open</span> <span class="o">=</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_op</span><span class="o">-&gt;</span><span class="n">open</span><span class="p">;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">open</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">error</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span><span class="p">;</span><span class="c1">//调用到了def_chr_fops-&gt;open
+		<span class="n">error</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">f</span><span class="p">);</span><span class="c1">//调用到了def_chr_fops-&gt;open
 </span><span class="c1"></span>		<span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span>
 			<span class="k">goto</span> <span class="n">cleanup_all</span><span class="p">;</span>
 	<span class="p">}</span>
@@ -624,7 +624,7 @@
 <span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">def_chr_fops</span> <span class="o">=</span> <span class="p">{</span>
 	<span class="p">.</span><span class="n">open</span> <span class="o">=</span> <span class="n">chrdev_open</span><span class="p">,</span>
 	<span class="p">.</span><span class="n">llseek</span> <span class="o">=</span> <span class="n">noop_llseek</span><span class="p">,</span>
-<span class="p">}</span><span class="p">;</span>
+<span class="p">};</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>可以看到上层用户对设备节点的<code>open</code> 操作，最后是获取到设备节点对应<code>inode</code> 的<code>i_fop</code>，而这个恰恰是设备节点生成时被设置为<code>def_chr_fops</code> 的。</p>
@@ -670,26 +670,26 @@
 	<span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
     <span class="k">struct</span> <span class="n">cdev</span> <span class="o">*</span><span class="n">new</span><span class="p">;</span>
 
-	<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cdev_lock</span><span class="p">)</span><span class="p">;</span>
-	<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
+	<span class="n">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cdev_lock</span><span class="p">);</span>
+	<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
 	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
         <span class="c1">//....
-</span><span class="c1"></span>		<span class="n">kobj</span> <span class="o">=</span> <span class="n">kobj_lookup</span><span class="p">(</span><span class="n">cdev_map</span><span class="p">,</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_rdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>		<span class="n">kobj</span> <span class="o">=</span> <span class="n">kobj_lookup</span><span class="p">(</span><span class="n">cdev_map</span><span class="p">,</span> <span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_rdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">);</span>
         <span class="c1">//通过inode-&gt;i_rdev设备找到了cdev
-</span><span class="c1"></span>		<span class="n">new</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">kobj</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cdev</span><span class="p">,</span> <span class="n">kobj</span><span class="p">)</span><span class="p">;</span>
-		<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-</span><span class="o">&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
+</span><span class="c1"></span>		<span class="n">new</span> <span class="o">=</span> <span class="n">container_of</span><span class="p">(</span><span class="n">kobj</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cdev</span><span class="p">,</span> <span class="n">kobj</span><span class="p">);</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_cdev</span><span class="p">;</span>
         <span class="c1">//....
 </span><span class="c1"></span>	<span class="p">}</span>
     <span class="c1">//....
 </span><span class="c1"></span>    <span class="c1">//获取cdev-&gt;ops
-</span><span class="c1"></span>	<span class="n">fops</span> <span class="o">=</span> <span class="n">fops_get</span><span class="p">(</span><span class="n">p</span><span class="o">-</span><span class="o">&gt;</span><span class="n">ops</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">fops</span> <span class="o">=</span> <span class="n">fops_get</span><span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">ops</span><span class="p">);</span>
 	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fops</span><span class="p">)</span>
 		<span class="k">goto</span> <span class="n">out_cdev_put</span><span class="p">;</span>
 
     <span class="c1">//替换了filp-&gt;f_op为驱动的fops
-</span><span class="c1"></span>	<span class="n">replace_fops</span><span class="p">(</span><span class="n">filp</span><span class="p">,</span> <span class="n">fops</span><span class="p">)</span><span class="p">;</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">filp</span><span class="o">-</span><span class="o">&gt;</span><span class="n">f_op</span><span class="o">-</span><span class="o">&gt;</span><span class="n">open</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">ret</span> <span class="o">=</span> <span class="n">filp</span><span class="o">-</span><span class="o">&gt;</span><span class="n">f_op</span><span class="o">-</span><span class="o">&gt;</span><span class="n">open</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">filp</span><span class="p">)</span><span class="p">;</span>
+</span><span class="c1"></span>	<span class="n">replace_fops</span><span class="p">(</span><span class="n">filp</span><span class="p">,</span> <span class="n">fops</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_op</span><span class="o">-&gt;</span><span class="n">open</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_op</span><span class="o">-&gt;</span><span class="n">open</span><span class="p">(</span><span class="n">inode</span><span class="p">,</span> <span class="n">filp</span><span class="p">);</span>
 		<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
 			<span class="k">goto</span> <span class="n">out_cdev_put</span><span class="p">;</span>
 	<span class="p">}</span>

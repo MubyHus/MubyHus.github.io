@@ -3,7 +3,7 @@
     <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
     <meta charset="UTF-8" />
 
-    <meta name="generator" content="Hugo 0.64.0-DEV" /><meta name="theme-color" content="#fff" />
+    <meta name="generator" content="Hugo 0.81.0-DEV" /><meta name="theme-color" content="#fff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
@@ -14,7 +14,7 @@
 
     <title>Linux中的指针使用 | 随意写</title>
 
-    <link rel="stylesheet" href="/css/meme.min.06572c5b217468bb826ea767e93c6ad50364fb1419e52e55c1a8d9aae637cea8.css"/>
+    <link rel="stylesheet" href="/css/meme.min.b0f4e6cbadb07bd0901176f8196804c1e85d7ba7c4a75b80ea6e7446f600a931.css"/>
 
     
     
@@ -255,9 +255,9 @@
 </span><span class="lnt">5
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">char</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sa"></span><span class="sc">&#39;</span><span class="sc">\0</span><span class="sc">&#39;</span><span class="p">}</span><span class="p">;</span>
-<span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="p">;</span> <span class="c1">//1
-</span><span class="c1"></span><span class="kt">char</span> <span class="n">b</span> <span class="o">=</span> <span class="sa"></span><span class="sc">&#39;</span><span class="sc">b</span><span class="sc">&#39;</span><span class="p">;</span>
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">char</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;\0&#39;</span><span class="p">};</span>
+<span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span> <span class="c1">//1
+</span><span class="c1"></span><span class="kt">char</span> <span class="n">b</span> <span class="o">=</span> <span class="sc">&#39;b&#39;</span><span class="p">;</span>
 <span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
 <span class="n">c</span> <span class="o">=</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>  <span class="c1">//2
 </span></code></pre></td></tr></table></div>
@@ -287,11 +287,11 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//在xxxx.c文件中定义，假设此时数组名buffer代表的地址是0x00007890
-</span><span class="c1"></span><span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sa"></span><span class="sc">&#39;</span><span class="sc">\0</span><span class="sc">&#39;</span><span class="p">}</span><span class="p">;</span>
+</span><span class="c1"></span><span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;\0&#39;</span><span class="p">};</span>
 
 <span class="c1">//在yyyy.c文件中进行声明，此时buffer变量被认为是指针，该变量本身地址是0x00007890
 </span><span class="c1"></span><span class="k">extern</span> <span class="kt">char</span> <span class="o">*</span><span class="n">buffer</span><span class="p">;</span>
-<span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sa"></span><span class="sc">&#39;</span><span class="sc">a</span><span class="sc">&#39;</span><span class="p">;</span><span class="c1">//1
+<span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span><span class="p">;</span><span class="c1">//1
 </span></code></pre></td></tr></table></div>
 </div>
 </div><p>我们在一个文件中定义了<code>buffer</code> 为<code>char</code> 型数组，在另一个文件中声明<code>buffer</code> 是其他地方定义的，作为<code>char</code> 型指针。</p>
@@ -320,7 +320,7 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//假设data代表地址是0x00000001
-</span><span class="c1"></span><span class="kt">int</span> <span class="n">data</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span><span class="p">;</span>
+</span><span class="c1"></span><span class="kt">int</span> <span class="n">data</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 
 <span class="c1">//p本身的地址是0x00001234，此时0x00001234这个地址内存开始，存放了4bytes数据0x00000001
 </span><span class="c1"></span><span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
@@ -376,14 +376,14 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">//kernel/fs/char_dev.c __register_chrdev_region函数
-</span><span class="c1"></span><span class="c1">//主要是在chrdevs这个全局数组中，找到一个可以插入新数据的位置
+</span><span class="c1">//主要是在chrdevs这个全局数组中，找到一个可以插入新数据的位置
 </span><span class="c1"></span><span class="k">static</span> <span class="k">struct</span> <span class="n">char_device_struct</span> <span class="p">{</span>
 	<span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
     <span class="c1">//....
-</span><span class="c1"></span><span class="p">}</span> <span class="o">*</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">CHRDEV_MAJOR_HASH_SIZE</span><span class="p">]</span><span class="p">;</span>
+</span><span class="c1"></span><span class="p">}</span> <span class="o">*</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">CHRDEV_MAJOR_HASH_SIZE</span><span class="p">];</span>
 
-<span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">*</span><span class="o">*</span><span class="n">cp</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="n">cp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">;</span> <span class="o">*</span><span class="n">cp</span><span class="p">;</span> <span class="n">cp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="p">(</span><span class="o">*</span><span class="n">cp</span><span class="p">)</span><span class="o">-</span><span class="o">&gt;</span><span class="n">next</span><span class="p">)</span>
+<span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">**</span><span class="n">cp</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">cp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="o">*</span><span class="n">cp</span><span class="p">;</span> <span class="n">cp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="p">(</span><span class="o">*</span><span class="n">cp</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">)</span>
     <span class="c1">//.....
 </span></code></pre></td></tr></table></div>
 </div>
@@ -402,7 +402,7 @@
 </span><span class="lnt">2
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">cd</span><span class="o">-</span><span class="o">&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="o">*</span><span class="n">cp</span><span class="p">;</span> <span class="c1">//*cp这个时候就是NULL，cd-&gt;next = NULL
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">cd</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="o">*</span><span class="n">cp</span><span class="p">;</span> <span class="c1">//*cp这个时候就是NULL，cd-&gt;next = NULL
 </span><span class="c1"></span><span class="o">*</span><span class="n">cp</span> <span class="o">=</span> <span class="n">cd</span><span class="p">;</span> <span class="c1">//*cp作为左值，即往0x7890存入cd这个地址，也就是说0x7890的next成员存放了cd的地址
 </span></code></pre></td></tr></table></div>
 </div>
@@ -420,7 +420,7 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="k">struct</span> <span class="n">char_device_struct</span> <span class="o">*</span><span class="n">cp</span><span class="p">,</span> <span class="n">previous</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="n">cp</span> <span class="o">=</span> <span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">,</span> <span class="n">previous</span> <span class="o">=</span> <span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">;</span> <span class="n">cp</span><span class="p">;</span> <span class="n">previous</span> <span class="o">=</span> <span class="n">cp</span><span class="p">,</span> <span class="n">cp</span> <span class="o">=</span> <span class="n">cp</span><span class="o">-</span><span class="o">&gt;</span><span class="n">next</span><span class="p">)</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">cp</span> <span class="o">=</span> <span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">previous</span> <span class="o">=</span> <span class="n">chrdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="n">cp</span><span class="p">;</span> <span class="n">previous</span> <span class="o">=</span> <span class="n">cp</span><span class="p">,</span> <span class="n">cp</span> <span class="o">=</span> <span class="n">cp</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">)</span>
     <span class="c1">//.....
 </span></code></pre></td></tr></table></div>
 </div>

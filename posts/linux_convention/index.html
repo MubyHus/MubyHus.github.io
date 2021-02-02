@@ -3,7 +3,7 @@
     <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
     <meta charset="UTF-8" />
 
-    <meta name="generator" content="Hugo 0.64.0-DEV" /><meta name="theme-color" content="#fff" />
+    <meta name="generator" content="Hugo 0.81.0-DEV" /><meta name="theme-color" content="#fff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
@@ -14,7 +14,7 @@
 
     <title>Linux代码惯例及小块知识 | 随意写</title>
 
-    <link rel="stylesheet" href="/css/meme.min.06572c5b217468bb826ea767e93c6ad50364fb1419e52e55c1a8d9aae637cea8.css"/>
+    <link rel="stylesheet" href="/css/meme.min.b0f4e6cbadb07bd0901176f8196804c1e85d7ba7c4a75b80ea6e7446f600a931.css"/>
 
     
     
@@ -60,7 +60,7 @@
         "description": "1. 1 #define THIS_MODULE(\u0026__this_module) __this_module 是由内核模块的工具链为当前模块产生的一个struct module 对象。 struct file_operations 这个结构体",
         "inLanguage" : "zh-CN",
         "articleSection": "posts",
-        "wordCount":  1131 ,
+        "wordCount":  1140 ,
         "image": "https://MubyHus.github.io/icons/apple-touch-icon.png",
         "author": {
             "@type": "Person",
@@ -220,7 +220,7 @@
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#</span><span class="cp">define THIS_MODULE(&amp;__this_module)</span><span class="cp">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define THIS_MODULE(&amp;__this_module)
 </span></code></pre></td></tr></table></div>
 </div>
 </div><p><code>__this_module</code> 是由内核模块的工具链为当前模块产生的一个<code>struct module</code> 对象。</p>
@@ -265,27 +265,27 @@
 </span><span class="lnt">30
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#</span><span class="cp">ifndef MODULE </span><span class="c1">//表示编入内核
-</span><span class="c1"></span><span class="c1">//如果是编译进内核的模块，x函数最终形成的是
-</span><span class="c1"></span><span class="c1">//static initcall_t __initcall_xid这样的函数名称
-</span><span class="c1"></span><span class="cp">#</span><span class="cp">define module_init(x)	__initcall(x);</span><span class="cp">
-</span><span class="cp"></span><span class="cp">#</span><span class="cp">define module_exit(x)	__exitcall(x);</span><span class="cp">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#ifndef MODULE </span><span class="c1">//表示编入内核
+</span><span class="c1">//如果是编译进内核的模块，x函数最终形成的是
+</span><span class="c1">//static initcall_t __initcall_xid这样的函数名称
+</span><span class="c1"></span><span class="cp">#define module_init(x)	__initcall(x);
+</span><span class="cp">#define module_exit(x)	__exitcall(x);
 </span><span class="cp"></span>
-<span class="cp">#</span><span class="cp">else </span><span class="cm">/* 表示是动态加载的模式 */</span><span class="cp">
+<span class="cp">#else </span><span class="cm">/* 表示是动态加载的模式 */</span><span class="cp">
 </span><span class="cp"></span>
-<span class="cp">#</span><span class="cp">define early_initcall(fn)		module_init(fn)</span><span class="cp">
+<span class="cp">#define early_initcall(fn)		module_init(fn)
 </span><span class="cp"></span><span class="cm">/*.........*/</span>
 <span class="c1">//在模块代码中定义了init_module和cleanup_module函数，分别是对应传进来函数的别名
-</span><span class="c1"></span><span class="c1">//这两个函数insmod和rmmod时需要使用的
-</span><span class="c1"></span><span class="cp">#</span><span class="cp">define module_init(initfn)					\</span><span class="cp">
-</span><span class="cp"></span><span class="cp">	static inline initcall_t __maybe_unused __inittest(void)		\</span><span class="cp">
-</span><span class="cp"></span><span class="cp">	{ return initfn; }					\</span><span class="cp">
-</span><span class="cp"></span><span class="cp">	int init_module(void) __attribute__((alias(#initfn)));</span><span class="cp">
+</span><span class="c1">//这两个函数insmod和rmmod时需要使用的
+</span><span class="c1"></span><span class="cp">#define module_init(initfn)					\
+</span><span class="cp">	static inline initcall_t __maybe_unused __inittest(void)		\
+</span><span class="cp">	{ return initfn; }					\
+</span><span class="cp">	int init_module(void) __attribute__((alias(#initfn)));
 </span><span class="cp"></span>
-<span class="cp">#</span><span class="cp">define module_exit(exitfn)					\</span><span class="cp">
-</span><span class="cp"></span><span class="cp">	static inline exitcall_t __maybe_unused __exittest(void)		\</span><span class="cp">
-</span><span class="cp"></span><span class="cp">	{ return exitfn; }					\</span><span class="cp">
-</span><span class="cp"></span><span class="cp">	void cleanup_module(void) __attribute__((alias(#exitfn)));</span><span class="cp">
+<span class="cp">#define module_exit(exitfn)					\
+</span><span class="cp">	static inline exitcall_t __maybe_unused __exittest(void)		\
+</span><span class="cp">	{ return exitfn; }					\
+</span><span class="cp">	void cleanup_module(void) __attribute__((alias(#exitfn)));
 </span><span class="cp"></span><span class="cm">/*
 </span><span class="cm">可以看到如果是模块的话，module_init实际上是内部定义了一个函数和函数别名：
 </span><span class="cm"> //定义个__inittest函数，该函数返回一个initcall_t
@@ -294,7 +294,7 @@
 </span><span class="cm">int init_module(void) alias initfn //initfn别名就是initfn
 </span><span class="cm">*/</span>
 
-<span class="cp">#</span><span class="cp">endif</span><span class="cp">
+<span class="cp">#endif
 </span></code></pre></td></tr></table></div>
 </div>
 </div><h4 id="3"><a href="#3" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>3</h4>

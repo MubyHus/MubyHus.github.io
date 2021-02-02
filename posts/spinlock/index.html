@@ -3,7 +3,7 @@
     <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
     <meta charset="UTF-8" />
 
-    <meta name="generator" content="Hugo 0.64.0-DEV" /><meta name="theme-color" content="#fff" />
+    <meta name="generator" content="Hugo 0.81.0-DEV" /><meta name="theme-color" content="#fff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
@@ -14,7 +14,7 @@
 
     <title>spinlock解析 | 随意写</title>
 
-    <link rel="stylesheet" href="/css/meme.min.06572c5b217468bb826ea767e93c6ad50364fb1419e52e55c1a8d9aae637cea8.css"/>
+    <link rel="stylesheet" href="/css/meme.min.b0f4e6cbadb07bd0901176f8196804c1e85d7ba7c4a75b80ea6e7446f600a931.css"/>
 
     
     
@@ -60,7 +60,7 @@
         "description": "相关术语 UP（Uni-Processor）：单核CPU系统，一个时刻只有一个进程在执",
         "inLanguage" : "zh-CN",
         "articleSection": "posts",
-        "wordCount":  4199 ,
+        "wordCount":  4209 ,
         "image": ["https://MubyHus.github.io/images/spinlock/spinlock.svg","https://MubyHus.github.io/images/spinlock/spinlock_func.svg","https://MubyHus.github.io/images/spinlock/spinlock_invoke.svg","https://MubyHus.github.io/images/spinlock/spinlock_acquire_sequence.png"],
         "author": {
             "@type": "Person",
@@ -260,7 +260,7 @@
 </span><span class="c1"></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">spinlock</span> <span class="p">{</span>
 	<span class="k">union</span> <span class="p">{</span>
 		<span class="k">struct</span> <span class="n">raw_spinlock</span> <span class="n">rlock</span><span class="p">;</span>
-	<span class="p">}</span><span class="p">;</span>
+	<span class="p">};</span>
 <span class="p">}</span> <span class="n">spinlock_t</span><span class="p">;</span>
 
 <span class="c1">//kernel/include/linux/spinlock_types.h
@@ -335,33 +335,33 @@
 	<span class="k">asm</span> <span class="k">volatile</span><span class="p">(</span>
 	<span class="cm">/* Atomically increment the next ticket. */</span>
 	<span class="cm">/* LL/SC */</span>
-<span class="sa"></span><span class="s">&#34;</span><span class="s">	prfm	pstl1strm, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将lock放到L1 cache中，加快访问速度
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">1:	ldaxr	%w0, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//从lock处load 32bit数据放到w0中；
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	add	%w1, %w0, %w5</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//w0 + 1 &lt;&lt; TICKET_SHIFT，就结果放到w1中。
+<span class="s">&#34;	prfm	pstl1strm, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将lock放到L1 cache中，加快访问速度
+</span><span class="c1"></span><span class="s">&#34;1:	ldaxr	%w0, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//从lock处load 32bit数据放到w0中；
+</span><span class="c1"></span><span class="s">&#34;	add	%w1, %w0, %w5</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//w0 + 1 &lt;&lt; TICKET_SHIFT，就结果放到w1中。
 </span><span class="c1"></span>						<span class="c1">//注意arch_spinlock_t是4字节对齐的，此时就是对next++(注意字节序)
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	stxr	%w2, %w1, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将w1的数据存回lock对应的内存中，操作成功与否的指示保存在w2中
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	cbnz	%w2, 1b</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="c1">//如果w2不为0，则跳转到标号1继续执行；如果w2为0，表示存回内存的操作成功，继续执行
+</span><span class="c1"></span><span class="s">&#34;	stxr	%w2, %w1, %3</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将w1的数据存回lock对应的内存中，操作成功与否的指示保存在w2中
+</span><span class="c1"></span><span class="s">&#34;	cbnz	%w2, 1b</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="c1">//如果w2不为0，则跳转到标号1继续执行；如果w2为0，表示存回内存的操作成功，继续执行
 </span><span class="c1"></span>	<span class="c1">//....
 </span><span class="c1"></span>	<span class="p">)</span>
 
 	<span class="cm">/* Did we get the lock? */</span>
-<span class="sa"></span><span class="s">&#34;</span><span class="s">	eor	%w1, %w0, %w0, ror #16</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将w0和w0循环右移的数据进行或运算，结果存入w1中
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	cbz	%w1, 3f</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//如果w1为0，则说明next和owner相等，跳转到标号3执行，此时说明获取到了锁；
+<span class="s">&#34;	eor	%w1, %w0, %w0, ror #16</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将w0和w0循环右移的数据进行或运算，结果存入w1中
+</span><span class="c1"></span><span class="s">&#34;	cbz	%w1, 3f</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//如果w1为0，则说明next和owner相等，跳转到标号3执行，此时说明获取到了锁；
 </span><span class="c1"></span>					<span class="c1">//如果w1不为0，说明没有获取到锁
 </span><span class="c1"></span>	<span class="cm">/*
 </span><span class="cm">	 * No: spin on the owner. Send a local event to avoid missing an
 </span><span class="cm">	 * unlock before the exclusive load.
 </span><span class="cm">	 */</span>
-<span class="sa"></span><span class="s">&#34;</span><span class="s">	sevl</span><span class="se">\n</span><span class="s">&#34;</span>
-<span class="sa"></span><span class="s">&#34;</span><span class="s">2:	wfe</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//没有获取到锁，CPU进入低功耗模式
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	ldaxrh	%w2, %4</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将owner值放入w2中，注意，owner是16bit的
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	eor	%w1, %w2, %w0, lsr #16</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//w0的next和w2中的owner进行或运算，结果存入w1
-</span><span class="c1"></span><span class="sa"></span><span class="s">&#34;</span><span class="s">	cbnz	%w1, 2b</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//如果w1不为0，说明没有获取到锁，继续低功耗等待；如果为0，说明获取到锁
+<span class="s">&#34;	sevl</span><span class="se">\n</span><span class="s">&#34;</span>
+<span class="s">&#34;2:	wfe</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//没有获取到锁，CPU进入低功耗模式
+</span><span class="c1"></span><span class="s">&#34;	ldaxrh	%w2, %4</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//将owner值放入w2中，注意，owner是16bit的
+</span><span class="c1"></span><span class="s">&#34;	eor	%w1, %w2, %w0, lsr #16</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//w0的next和w2中的owner进行或运算，结果存入w1
+</span><span class="c1"></span><span class="s">&#34;	cbnz	%w1, 2b</span><span class="se">\n</span><span class="s">&#34;</span> <span class="c1">//如果w1不为0，说明没有获取到锁，继续低功耗等待；如果为0，说明获取到锁
 </span><span class="c1"></span>	<span class="cm">/* We got the lock. Critical section starts here. */</span>
-<span class="sa"></span><span class="s">&#34;</span><span class="s">3:</span><span class="s">&#34;</span><span class="c1">//memory barrier操作
-</span><span class="c1"></span>	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lockval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">newval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">+Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span>
-	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lock</span><span class="o">-</span><span class="o">&gt;</span><span class="n">owner</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">I</span><span class="s">&#34;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;</span><span class="o">&lt;</span> <span class="n">TICKET_SHIFT</span><span class="p">)</span>
-	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">memory</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
+<span class="s">&#34;3:&#34;</span><span class="c1">//memory barrier操作
+</span><span class="c1"></span>	<span class="o">:</span> <span class="s">&#34;=&amp;r&#34;</span> <span class="p">(</span><span class="n">lockval</span><span class="p">),</span> <span class="s">&#34;=&amp;r&#34;</span> <span class="p">(</span><span class="n">newval</span><span class="p">),</span> <span class="s">&#34;=&amp;r&#34;</span> <span class="p">(</span><span class="n">tmp</span><span class="p">),</span> <span class="s">&#34;+Q&#34;</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span>
+	<span class="o">:</span> <span class="s">&#34;Q&#34;</span> <span class="p">(</span><span class="n">lock</span><span class="o">-&gt;</span><span class="n">owner</span><span class="p">),</span> <span class="s">&#34;I&#34;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">TICKET_SHIFT</span><span class="p">)</span>
+	<span class="o">:</span> <span class="s">&#34;memory&#34;</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></td></tr></table></div>
 </div>
@@ -382,7 +382,7 @@
 <span class="o">:</span> <span class="n">output</span> <span class="n">operand</span> <span class="n">list</span>     <span class="cm">/*输出操作数列表*/</span>
 <span class="o">:</span> <span class="n">input</span> <span class="n">operand</span> <span class="n">list</span>      <span class="cm">/*输入操作数列表*/</span>
 <span class="o">:</span> <span class="n">clobber</span> <span class="n">list</span>               <span class="cm">/*被改变资源列表*/</span>
-<span class="p">)</span><span class="p">;</span>
+<span class="p">);</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>所以，前文中的汇编代码中：</p>
@@ -393,9 +393,9 @@
 </span><span class="lnt">3
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c">	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lockval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">newval</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">=&amp;r</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">+Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span> <span class="c1">//输出操作数
-</span><span class="c1"></span>	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">Q</span><span class="s">&#34;</span> <span class="p">(</span><span class="n">lock</span><span class="o">-</span><span class="o">&gt;</span><span class="n">owner</span><span class="p">)</span><span class="p">,</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">I</span><span class="s">&#34;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;</span><span class="o">&lt;</span> <span class="n">TICKET_SHIFT</span><span class="p">)</span> <span class="c1">//输入操作数
-</span><span class="c1"></span>	<span class="o">:</span> <span class="sa"></span><span class="s">&#34;</span><span class="s">memory</span><span class="s">&#34;</span><span class="p">)</span><span class="p">;</span>
+<pre class="chroma"><code class="language-c" data-lang="c">	<span class="o">:</span> <span class="s">&#34;=&amp;r&#34;</span> <span class="p">(</span><span class="n">lockval</span><span class="p">),</span> <span class="s">&#34;=&amp;r&#34;</span> <span class="p">(</span><span class="n">newval</span><span class="p">),</span> <span class="s">&#34;=&amp;r&#34;</span> <span class="p">(</span><span class="n">tmp</span><span class="p">),</span> <span class="s">&#34;+Q&#34;</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span> <span class="c1">//输出操作数
+</span><span class="c1"></span>	<span class="o">:</span> <span class="s">&#34;Q&#34;</span> <span class="p">(</span><span class="n">lock</span><span class="o">-&gt;</span><span class="n">owner</span><span class="p">),</span> <span class="s">&#34;I&#34;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">TICKET_SHIFT</span><span class="p">)</span> <span class="c1">//输入操作数
+</span><span class="c1"></span>	<span class="o">:</span> <span class="s">&#34;memory&#34;</span><span class="p">);</span>
 </code></pre></td></tr></table></div>
 </div>
 </div><p>每个操作数前面都会有一些限定字符，其大致意义如下：</p>
