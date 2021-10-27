@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Zhen&#39;s blog</title>
-    <link>https://example.com/categories/</link>
+    <link>https://mubyhus.github.io/categories/</link>
     <description>Recent content in Categories on Zhen&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Zhen</copyright>
-    <lastBuildDate>Thu, 21 Oct 2021 12:25:26 +0800</lastBuildDate><atom:link href="https://example.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 21 Oct 2021 12:25:26 +0800</lastBuildDate><atom:link href="https://mubyhus.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Thought</title>
-      <link>https://example.com/categories/thought/</link>
+      <link>https://mubyhus.github.io/categories/thought/</link>
       <pubDate>Thu, 21 Oct 2021 12:25:26 +0800</pubDate>
       
-      <guid>https://example.com/categories/thought/</guid>
+      <guid>https://mubyhus.github.io/categories/thought/</guid>
       <description></description>
     </item>
     

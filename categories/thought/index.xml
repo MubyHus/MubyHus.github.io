@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Thought on Zhen&#39;s blog</title>
-    <link>https://example.com/categories/thought/</link>
+    <link>https://mubyhus.github.io/categories/thought/</link>
     <description>Recent content in Thought on Zhen&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Zhen</copyright>
-    <lastBuildDate>Thu, 21 Oct 2021 12:25:26 +0800</lastBuildDate><atom:link href="https://example.com/categories/thought/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 21 Oct 2021 12:25:26 +0800</lastBuildDate><atom:link href="https://mubyhus.github.io/categories/thought/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>About</title>
-      <link>https://example.com/about/</link>
+      <link>https://mubyhus.github.io/about/</link>
       <pubDate>Thu, 21 Oct 2021 12:25:26 +0800</pubDate>
       
-      <guid>https://example.com/about/</guid>
+      <guid>https://mubyhus.github.io/about/</guid>
       <description>一个人应该能够换尿布，策划战争，杀猪，开船，设计房子，写十四行诗，结算账户，砌墙，接脱臼的骨头，安慰濒死的人，服从命令，发布命令，携手合作，独立行动，解数学方程，分析新问题，铲粪，电脑编程，做出可口的饭，善打架，勇敢地死去。只有昆虫才专业化。
 &amp;ndash;罗伯特·安森·海因莱因 《时间足够你爱》</description>
     </item>
