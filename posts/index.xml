@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Zhen&#39;s blog</title>
-    <link>https://mubyhus.github.io/</link>
-    <description>Recent content on Zhen&#39;s blog</description>
+    <title>Posts on Zhen&#39;s blog</title>
+    <link>https://mubyhus.github.io/posts/</link>
+    <description>Recent content in Posts on Zhen&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Zhen</copyright>
-    <lastBuildDate>Fri, 10 Dec 2021 21:24:35 +0800</lastBuildDate><atom:link href="https://mubyhus.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 10 Dec 2021 21:24:35 +0800</lastBuildDate><atom:link href="https://mubyhus.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>减脂计划</title>
       <link>https://mubyhus.github.io/posts/lose_weight/</link>
@@ -21,16 +21,6 @@
 由于现在体重反弹，也有好长一段时间没有锻炼，所以我会在这个12月开始尝试再次降体重降到130左右。同时开始长阅读，减少短平快的信息接收。为了记录相关历程，重新将这个博客更新起来。
  更新记录(最新2021.12.10)：
    时间段 体重变化 跳绳个数总计     初始体重 147 0   12-11~12-18                </description>
-    </item>
-    
-    <item>
-      <title>About</title>
-      <link>https://mubyhus.github.io/about/</link>
-      <pubDate>Thu, 21 Oct 2021 12:25:26 +0800</pubDate>
-      
-      <guid>https://mubyhus.github.io/about/</guid>
-      <description>一个人应该能够换尿布，策划战争，杀猪，开船，设计房子，写十四行诗，结算账户，砌墙，接脱臼的骨头，安慰濒死的人，服从命令，发布命令，携手合作，独立行动，解数学方程，分析新问题，铲粪，电脑编程，做出可口的饭，善打架，勇敢地死去。只有昆虫才专业化。
-&amp;ndash;罗伯特·安森·海因莱因 《时间足够你爱》</description>
     </item>
     
   </channel>
